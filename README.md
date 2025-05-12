@@ -67,6 +67,3 @@ thrifteezy/
 - Manage orders and wishlists
 - User profiles
 - Responsive design
-
-## License
-MIT 
