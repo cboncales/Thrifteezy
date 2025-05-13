@@ -28,12 +28,12 @@ export default function Layout() {
       <Disclosure as="nav" className="bg-white shadow-sm">
         {({ open }) => (
           <>
-            <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="w-full px-8">
               <div className="flex h-16 justify-between">
                 {/* Logo */}
                 <div className="flex">
                   <div className="flex flex-shrink-0 items-center">
-                    <Link to="/" className="text-2xl font-bold text-blue-600">
+                    <Link to="/" className="text-2xl font-bold text-purple-700">
                       Thrifteezy
                     </Link>
                   </div>
@@ -42,7 +42,7 @@ export default function Layout() {
                 </div>
 
                 {/* Desktop User Menu */}
-                <div className="hidden sm:ml-6 sm:flex sm:items-center">
+                <div className="flex items-center">
                   {user ? (
                     <UserMenu user={user} onLogout={handleLogout} />
                   ) : (
@@ -55,7 +55,7 @@ export default function Layout() {
                       </Link>
                       <Link
                         to="/register"
-                        className="bg-blue-600 text-white hover:bg-blue-700 px-3 py-2 rounded-md text-sm font-medium"
+                        className="bg-purple-700 text-white hover:bg-purple-800 px-3 py-2 rounded-md text-sm font-medium"
                       >
                         Register
                       </Link>
@@ -84,10 +84,8 @@ export default function Layout() {
       </Disclosure>
 
       {/* Main content */}
-      <main className="py-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <Outlet />
-        </div>
+      <main>
+        <Outlet />
       </main>
     </div>
   );

@@ -13,20 +13,20 @@ export default function Home() {
   }, [dispatch]);
 
   return (
-    <div className="min-h-screen font-sans">
+    <div className="w-full">
       {/* Hero Section */}
-      <section className="bg-gradient-to-r from-purple-700 to-indigo-700 text-white py-32">
-        <div className="container mx-auto px-8">
-          <div className="max-w-4xl mx-auto text-center animate-fadeIn">
-            <h1 className="text-6xl font-extrabold mb-8 drop-shadow-xl">
+      <section className="w-full bg-gradient-to-r from-purple-700 to-indigo-700 text-white py-24">
+        <div className="w-full max-w-[1400px] mx-auto px-8">
+          <div className="max-w-3xl mx-auto text-center">
+            <h1 className="text-5xl font-extrabold mb-6 drop-shadow-xl">
               Welcome to <span className="text-yellow-300">Thrifteezy</span>
             </h1>
-            <p className="text-2xl mb-12 text-white/90">
+            <p className="text-xl mb-8 text-white/90">
               Your one-stop shop for sustainable and affordable fashion
             </p>
             <Link
               to="/items"
-              className="bg-white text-purple-700 px-10 py-4 rounded-full font-semibold hover:bg-purple-100 transition-all shadow-md text-lg"
+              className="bg-white text-purple-700 px-8 py-3 rounded-full font-semibold hover:bg-purple-100 transition-all shadow-md"
             >
               Shop Now
             </Link>
@@ -35,9 +35,9 @@ export default function Home() {
       </section>
 
       {/* Featured Items */}
-      <section className="py-24 bg-gray-50">
-        <div className="container mx-auto px-8">
-          <h2 className="text-4xl font-bold text-center mb-16 text-gray-800">
+      <section className="w-full py-20 bg-gray-50">
+        <div className="w-full max-w-[1400px] mx-auto px-8">
+          <h2 className="text-3xl font-bold text-center mb-12 text-gray-800">
             Featured Items
           </h2>
           {isLoading ? (
@@ -51,16 +51,16 @@ export default function Home() {
           ) : items.length === 0 ? (
             <div className="text-center text-gray-600">No items found</div>
           ) : (
-            <div className="grid grid-cols-4 gap-8">
+            <div className="grid grid-cols-4 gap-6">
               {items.map((item) => (
                 <ItemCard key={item.id} item={item} />
               ))}
             </div>
           )}
-          <div className="text-center mt-20">
+          <div className="text-center mt-16">
             <Link
               to="/items"
-              className="inline-block bg-purple-700 text-white px-10 py-4 rounded-full font-semibold hover:bg-purple-800 transition-all shadow text-lg"
+              className="inline-block bg-purple-700 text-white px-8 py-3 rounded-full font-semibold hover:bg-purple-800 transition-all shadow"
             >
               View All Items
             </Link>
@@ -69,9 +69,9 @@ export default function Home() {
       </section>
 
       {/* Feature Highlights */}
-      <section className="py-24 bg-white">
-        <div className="container mx-auto px-8">
-          <div className="grid grid-cols-3 gap-16">
+      <section className="w-full py-20 bg-white">
+        <div className="w-full max-w-[1400px] mx-auto px-8">
+          <div className="grid grid-cols-3 gap-12">
             {[
               {
                 title: "Fast Delivery",
@@ -92,9 +92,9 @@ export default function Home() {
               },
             ].map((feature, index) => (
               <div key={index} className="text-center group">
-                <div className="bg-purple-100 w-24 h-24 rounded-full flex items-center justify-center mx-auto mb-8 transform group-hover:scale-110 transition-transform duration-300 shadow-md">
+                <div className="bg-purple-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 transform group-hover:scale-110 transition-transform duration-300 shadow-md">
                   <svg
-                    className="w-12 h-12 text-purple-700"
+                    className="w-8 h-8 text-purple-700"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -107,10 +107,10 @@ export default function Home() {
                     />
                   </svg>
                 </div>
-                <h3 className="text-2xl font-semibold mb-4 text-gray-800">
+                <h3 className="text-xl font-semibold mb-3 text-gray-800">
                   {feature.title}
                 </h3>
-                <p className="text-gray-600 text-lg">{feature.desc}</p>
+                <p className="text-gray-600">{feature.desc}</p>
               </div>
             ))}
           </div>

@@ -2,8 +2,8 @@ import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../store";
 import { useAuth } from "../../hooks/useAuth";
-import { fetchUserOrders } from "../../store/slices/orderSlice";
-import { fetchUserWishlists } from "../../store/slices/wishlistsSlice";
+import { fetchOrders } from "../../store/slices/ordersSlice";
+import { fetchWishlists } from "../../store/slices/wishlistsSlice";
 
 export default function Profile() {
   const dispatch = useDispatch<AppDispatch>();
@@ -17,8 +17,8 @@ export default function Profile() {
 
   useEffect(() => {
     if (user) {
-      dispatch(fetchUserOrders());
-      dispatch(fetchUserWishlists());
+      dispatch(fetchOrders());
+      dispatch(fetchWishlists());
     }
   }, [dispatch, user]);
 
