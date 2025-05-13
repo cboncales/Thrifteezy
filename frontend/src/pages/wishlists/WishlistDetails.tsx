@@ -1,14 +1,19 @@
-import { useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { useDispatch, useSelector } from 'react-redux';
-import type { AppDispatch, RootState } from '../../store';
-import { fetchWishlistById, removeFromWishlist } from '../../store/slices/wishlistsSlice';
+import { useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import type { AppDispatch, RootState } from "../../store";
+import {
+  fetchWishlistById,
+  removeFromWishlist,
+} from "../../store/slices/wishlistsSlice";
 
-export const WishlistDetails = () => {
+export default function WishlistDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { currentWishlist, isLoading, error } = useSelector((state: RootState) => state.wishlists);
+  const { currentWishlist, isLoading, error } = useSelector(
+    (state: RootState) => state.wishlists
+  );
 
   useEffect(() => {
     if (id) {
@@ -17,7 +22,12 @@ export const WishlistDetails = () => {
   }, [dispatch, id]);
 
   const handleRemoveItem = async (itemId: string) => {
-    if (id && window.confirm('Are you sure you want to remove this item from your wishlist?')) {
+    if (
+      id &&
+      window.confirm(
+        "Are you sure you want to remove this item from your wishlist?"
+      )
+    ) {
       try {
         await dispatch(removeFromWishlist({ wishlistId: id, itemId })).unwrap();
       } catch (err) {
@@ -37,7 +47,7 @@ export const WishlistDetails = () => {
   if (error || !currentWishlist) {
     return (
       <div className="text-center text-red-600 py-8">
-        {error || 'Wishlist not found'}
+        {error || "Wishlist not found"}
       </div>
     );
   }
@@ -46,28 +56,35 @@ export const WishlistDetails = () => {
     <div className="space-y-8">
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{currentWishlist.name}</h1>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {currentWishlist.name}
+          </h1>
           <p className="mt-1 text-sm text-gray-500">
-            Created on {new Date(currentWishlist.createdAt).toLocaleDateString()}
+            Created on{" "}
+            {new Date(currentWishlist.createdAt).toLocaleDateString()}
           </p>
         </div>
         <span
           className={`px-3 py-1 text-sm font-medium rounded-full ${
             currentWishlist.isPublic
-              ? 'bg-green-100 text-green-800'
-              : 'bg-gray-100 text-gray-800'
+              ? "bg-green-100 text-green-800"
+              : "bg-gray-100 text-gray-800"
           }`}
         >
-          {currentWishlist.isPublic ? 'Public' : 'Private'}
+          {currentWishlist.isPublic ? "Public" : "Private"}
         </span>
       </div>
 
       {currentWishlist.items.length === 0 ? (
         <div className="text-center py-12 bg-white shadow sm:rounded-lg">
-          <h2 className="text-2xl font-semibold text-gray-900 mb-4">No items in this wishlist</h2>
-          <p className="text-gray-600 mb-8">Start adding items to your wishlist</p>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-4">
+            No items in this wishlist
+          </h2>
+          <p className="text-gray-600 mb-8">
+            Start adding items to your wishlist
+          </p>
           <button
-            onClick={() => navigate('/items')}
+            onClick={() => navigate("/items")}
             className="inline-block bg-purple-600 text-white px-6 py-3 rounded-md hover:bg-purple-700 transition-colors"
           >
             Browse Items
@@ -121,4 +138,4 @@ export const WishlistDetails = () => {
       )}
     </div>
   );
-}; 
+}

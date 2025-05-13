@@ -9,7 +9,7 @@ import { Navigation } from "./Navigation";
 import { UserMenu } from "./UserMenu";
 import { MobileMenu } from "./MobileMenu";
 
-function classNames(...classes: string[]) {
+export function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
 }
 

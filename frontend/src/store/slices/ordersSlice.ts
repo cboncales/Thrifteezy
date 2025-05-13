@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
-import { RootState } from "../index";
+import type { RootState } from "../../store";
 
 export interface OrderItem {
   id: string;

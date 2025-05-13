@@ -8,7 +8,7 @@ import {
   deleteWishlist,
 } from "../../store/slices/wishlistsSlice";
 
-export const Wishlists = () => {
+export default function Wishlists() {
   const dispatch = useDispatch<AppDispatch>();
   const { wishlists, isLoading, error } = useSelector(
     (state: RootState) => state.wishlists
@@ -188,4 +188,4 @@ export const Wishlists = () => {
       )}
     </div>
   );
-};
+}
