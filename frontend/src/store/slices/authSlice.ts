@@ -21,6 +21,7 @@ interface AuthResponse {
 const initialState: AuthState = {
   user: null,
   token: localStorage.getItem("token"),
+  users: [],
   isLoading: false,
   error: null,
 };
@@ -103,7 +104,7 @@ export const fetchAllUsers = createAsyncThunk(
   "auth/fetchAllUsers",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get<User[]>("/api/users");
+      const response = await axios.get<User[]>(`${API_URL}/users`);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(

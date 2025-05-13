@@ -36,7 +36,7 @@ export const AdminRegister = () => {
     }
 
     try {
-      const { confirmPassword, adminCode, ...registerData } = formData;
+      const { confirmPassword, ...registerData } = formData;
       await dispatch(register({ ...registerData, role: "ADMIN" })).unwrap();
       navigate("/admin");
     } catch (err) {
