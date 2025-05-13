@@ -11,6 +11,7 @@ declare global {
       user?: {
         id: string;
         email: string;
+        role: string;
       };
     }
   }
@@ -32,6 +33,7 @@ export const authenticateToken = async (
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
       id: string;
       email: string;
+      role: string;
     };
 
     // Verify user still exists in database

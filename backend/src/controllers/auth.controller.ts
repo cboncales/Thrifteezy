@@ -6,6 +6,8 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+const ADMIN_CODE = process.env.ADMIN_CODE || "ADMIN123"; // In production, use environment variable
+
 export const register = async (req: Request, res: Response) => {
   try {
     // Check for validation errors
@@ -14,7 +16,14 @@ export const register = async (req: Request, res: Response) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { email, password, name } = req.body;
+    const { email, password, name, role, adminCode } = req.body;
+
+    // Validate admin registration
+    if (role === "ADMIN") {
+      if (!adminCode || adminCode !== ADMIN_CODE) {
+        return res.status(403).json({ error: "Invalid admin code" });
+      }
+    }
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
@@ -35,12 +44,13 @@ export const register = async (req: Request, res: Response) => {
         email,
         password: hashedPassword,
         name,
+        role: role || "USER", // Default to USER if no role provided
       },
     });
 
     // Generate JWT token
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET!,
       { expiresIn: process.env.JWT_EXPIRES_IN }
     );
@@ -51,6 +61,8 @@ export const register = async (req: Request, res: Response) => {
         id: user.id,
         email: user.email,
         name: user.name,
+        role: user.role,
+        createdAt: user.createdAt,
       },
       token,
     });
@@ -87,7 +99,7 @@ export const login = async (req: Request, res: Response) => {
 
     // Generate JWT token
     const token = jwt.sign(
-      { id: user.id, email: user.email },
+      { id: user.id, email: user.email, role: user.role },
       process.env.JWT_SECRET!,
       { expiresIn: process.env.JWT_EXPIRES_IN }
     );
@@ -98,6 +110,8 @@ export const login = async (req: Request, res: Response) => {
         id: user.id,
         email: user.email,
         name: user.name,
+        role: user.role,
+        createdAt: user.createdAt,
       },
       token,
     });
@@ -115,6 +129,7 @@ export const getCurrentUser = async (req: Request, res: Response) => {
         id: true,
         email: true,
         name: true,
+        role: true,
         createdAt: true,
       },
     });
