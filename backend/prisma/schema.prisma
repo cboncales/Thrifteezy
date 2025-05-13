@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  items     Item[]
+  orders    Order[]
+  wishlists Wishlist[]
+}
+
+model Item {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  price       Float
+  size        String
+  condition   String
+  photoUrl    String
+  status      String   @default("available") // available, sold, reserved
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  orderItems  OrderItem[]
+  wishlistItems WishlistItem[]
+}
+
+model Order {
+  id        String   @id @default(uuid())
+  status    String   // pending, completed, cancelled
+  total     Float
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  items     OrderItem[]
+}
+
+model OrderItem {
+  id        String   @id @default(uuid())
+  quantity  Int
+  price     Float
+  createdAt DateTime @default(now())
+
+  // Relations
+  orderId   String
+  order     Order    @relation(fields: [orderId], references: [id])
+  itemId    String
+  item      Item     @relation(fields: [itemId], references: [id])
+}
+
+model Wishlist {
+  id        String   @id @default(uuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  items     WishlistItem[]
+}
+
+model WishlistItem {
+  id         String   @id @default(uuid())
+  createdAt  DateTime @default(now())
+
+  // Relations
+  wishlistId String
+  wishlist   Wishlist @relation(fields: [wishlistId], references: [id])
+  itemId     String
+  item       Item     @relation(fields: [itemId], references: [id])
+} 
