@@ -15,7 +15,7 @@ export const createItem = async (req: Request, res: Response) => {
     const { title, description, price, size, condition, photoUrl } = req.body;
     const userId = req.user!.id;
 
-    const item = await prisma.item.create({
+    const item = await prisma.items.create({
       data: {
         title,
         description,
@@ -70,7 +70,7 @@ export const getItems = async (req: Request, res: Response) => {
     if (condition) where.condition = condition;
 
     const [items, total] = await Promise.all([
-      prisma.item.findMany({
+      prisma.items.findMany({
         where,
         include: {
           user: {
@@ -85,7 +85,7 @@ export const getItems = async (req: Request, res: Response) => {
         skip,
         take: limitNumber,
       }),
-      prisma.item.count({ where }),
+      prisma.items.count({ where }),
     ]);
 
     res.json({
@@ -108,7 +108,7 @@ export const getItem = async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
 
-    const item = await prisma.item.findUnique({
+    const item = await prisma.items.findUnique({
       where: { id },
       include: {
         user: {
@@ -146,7 +146,7 @@ export const updateItem = async (req: Request, res: Response) => {
       req.body;
 
     // Check if item exists and belongs to user
-    const existingItem = await prisma.item.findUnique({
+    const existingItem = await prisma.items.findUnique({
       where: { id },
     });
 
@@ -160,7 +160,7 @@ export const updateItem = async (req: Request, res: Response) => {
         .json({ error: "Not authorized to update this item" });
     }
 
-    const item = await prisma.item.update({
+    const item = await prisma.items.update({
       where: { id },
       data: {
         title,
@@ -187,7 +187,7 @@ export const deleteItem = async (req: Request, res: Response) => {
     const userId = req.user!.id;
 
     // Check if item exists and belongs to user
-    const existingItem = await prisma.item.findUnique({
+    const existingItem = await prisma.items.findUnique({
       where: { id },
     });
 
@@ -201,7 +201,7 @@ export const deleteItem = async (req: Request, res: Response) => {
         .json({ error: "Not authorized to delete this item" });
     }
 
-    await prisma.item.delete({
+    await prisma.items.delete({
       where: { id },
     });
 
@@ -221,7 +221,7 @@ export const getUserItems = async (req: Request, res: Response) => {
     const where: any = { userId };
     if (status) where.status = status;
 
-    const items = await prisma.item.findMany({
+    const items = await prisma.items.findMany({
       where,
       orderBy: { createdAt: "desc" },
     });

@@ -1,6 +1,6 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
+import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -23,11 +23,11 @@ export const authenticateToken = async (
   next: NextFunction
 ) => {
   try {
-    const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1];
+    const authHeader = req.headers["authorization"];
+    const token = authHeader && authHeader.split(" ")[1];
 
     if (!token) {
-      return res.status(401).json({ error: 'Authentication token required' });
+      return res.status(401).json({ error: "Authentication token required" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
@@ -37,17 +37,17 @@ export const authenticateToken = async (
     };
 
     // Verify user still exists in database
-    const user = await prisma.user.findUnique({
-      where: { id: decoded.id }
+    const user = await prisma.users.findUnique({
+      where: { id: decoded.id },
     });
 
     if (!user) {
-      return res.status(401).json({ error: 'User no longer exists' });
+      return res.status(401).json({ error: "User no longer exists" });
     }
 
     req.user = decoded;
     next();
   } catch (error) {
-    return res.status(403).json({ error: 'Invalid or expired token' });
+    return res.status(403).json({ error: "Invalid or expired token" });
   }
-}; 
+};

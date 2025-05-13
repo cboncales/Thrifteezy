@@ -10,7 +10,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model User {
+model Users {
   id        String   @id @default(uuid())
   email     String   @unique
   password  String
@@ -20,12 +20,12 @@ model User {
   updatedAt DateTime @updatedAt
 
   // Relations
-  items     Item[]
-  orders    Order[]
-  wishlists Wishlist[]
+  items     Items[]
+  orders    Orders[]
+  wishlists Wishlists[]
 }
 
-model Item {
+model Items {
   id          String   @id @default(uuid())
   title       String
   description String
@@ -39,12 +39,12 @@ model Item {
 
   // Relations
   userId      String
-  user        User     @relation(fields: [userId], references: [id])
-  orderItems  OrderItem[]
-  wishlistItems WishlistItem[]
+  user        Users     @relation(fields: [userId], references: [id])
+  orderItems  OrderItems[]
+  wishlistItems WishlistItems[]
 }
 
-model Order {
+model Orders {
   id        String   @id @default(uuid())
   status    String   // pending, completed, cancelled
   total     Float
@@ -53,11 +53,11 @@ model Order {
 
   // Relations
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  items     OrderItem[]
+  user      Users     @relation(fields: [userId], references: [id])
+  items     OrderItems[]
 }
 
-model OrderItem {
+model OrderItems {
   id        String   @id @default(uuid())
   quantity  Int
   price     Float
@@ -65,12 +65,12 @@ model OrderItem {
 
   // Relations
   orderId   String
-  order     Order    @relation(fields: [orderId], references: [id])
+  order     Orders    @relation(fields: [orderId], references: [id])
   itemId    String
-  item      Item     @relation(fields: [itemId], references: [id])
+  item      Items     @relation(fields: [itemId], references: [id])
 }
 
-model Wishlist {
+model Wishlists {
   id        String   @id @default(uuid())
   name      String
   createdAt DateTime @default(now())
@@ -78,17 +78,17 @@ model Wishlist {
 
   // Relations
   userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  items     WishlistItem[]
+  user      Users     @relation(fields: [userId], references: [id])
+  items     WishlistItems[]
 }
 
-model WishlistItem {
+model WishlistItems {
   id         String   @id @default(uuid())
   createdAt  DateTime @default(now())
 
   // Relations
   wishlistId String
-  wishlist   Wishlist @relation(fields: [wishlistId], references: [id])
+  wishlist   Wishlists @relation(fields: [wishlistId], references: [id])
   itemId     String
-  item       Item     @relation(fields: [itemId], references: [id])
+  item       Items     @relation(fields: [itemId], references: [id])
 } 

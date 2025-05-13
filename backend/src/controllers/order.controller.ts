@@ -22,7 +22,7 @@ export const createOrder = async (req: Request, res: Response) => {
       const orderItems = [];
 
       for (const item of items) {
-        const dbItem = await prisma.item.findUnique({
+        const dbItem = await prisma.items.findUnique({
           where: { id: item.itemId },
         });
 
@@ -46,14 +46,14 @@ export const createOrder = async (req: Request, res: Response) => {
         });
 
         // Update item status
-        await prisma.item.update({
+        await prisma.items.update({
           where: { id: item.itemId },
           data: { status: "reserved" },
         });
       }
 
       // Create order
-      const order = await prisma.order.create({
+      const order = await prisma.orders.create({
         data: {
           userId,
           status: "pending",
@@ -95,7 +95,7 @@ export const getOrders = async (req: Request, res: Response) => {
     if (status) where.status = status;
 
     const [orders, total] = await Promise.all([
-      prisma.order.findMany({
+      prisma.orders.findMany({
         where,
         include: {
           user: {
@@ -115,7 +115,7 @@ export const getOrders = async (req: Request, res: Response) => {
         skip,
         take: limitNumber,
       }),
-      prisma.order.count({ where }),
+      prisma.orders.count({ where }),
     ]);
 
     res.json({
@@ -139,7 +139,7 @@ export const getOrder = async (req: Request, res: Response) => {
     const { id } = req.params;
     const userId = req.user!.id;
 
-    const order = await prisma.order.findUnique({
+    const order = await prisma.orders.findUnique({
       where: { id },
       include: {
         user: {
@@ -187,7 +187,7 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
     const { status } = req.body;
     const userId = req.user!.id;
 
-    const order = await prisma.order.findUnique({
+    const order = await prisma.orders.findUnique({
       where: { id },
       include: {
         items: {
@@ -212,7 +212,7 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
     // Update order status and item statuses
     const updatedOrder = await prisma.$transaction(async (prisma) => {
       // Update order status
-      const updatedOrder = await prisma.order.update({
+      const updatedOrder = await prisma.orders.update({
         where: { id },
         data: { status },
         include: {
@@ -227,14 +227,14 @@ export const updateOrderStatus = async (req: Request, res: Response) => {
       // Update item statuses based on order status
       if (status === "completed") {
         for (const orderItem of order.items) {
-          await prisma.item.update({
+          await prisma.items.update({
             where: { id: orderItem.item.id },
             data: { status: "sold" },
           });
         }
       } else if (status === "cancelled") {
         for (const orderItem of order.items) {
-          await prisma.item.update({
+          await prisma.items.update({
             where: { id: orderItem.item.id },
             data: { status: "available" },
           });
@@ -260,7 +260,7 @@ export const getUserOrders = async (req: Request, res: Response) => {
     const where: any = { userId };
     if (status) where.status = status;
 
-    const orders = await prisma.order.findMany({
+    const orders = await prisma.orders.findMany({
       where,
       include: {
         items: {
