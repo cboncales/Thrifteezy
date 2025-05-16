@@ -8,6 +8,9 @@ import { Provider } from "react-redux";
 import { store } from "./store";
 import { Suspense, lazy } from "react";
 import { PrivateRoute } from "./components/auth/PrivateRoute";
+import { PublicRoute } from "./components/auth/PublicRoute";
+import { AdminRoute } from "./components/auth/AdminRoute";
+import { AuthProvider } from "./components/auth/AuthProvider";
 import { Login } from "./pages/auth/Login";
 import { Register } from "./pages/auth/Register";
 import { Orders } from "./pages/orders/Orders";
@@ -37,101 +40,124 @@ const Loading = () => (
 function App() {
   return (
     <Provider store={store}>
-      <Router>
-        <Suspense fallback={<Loading />}>
-          <Routes>
-            <Route element={<Layout />}>
-              <Route path="/" element={<HomePage />} />
-              <Route path="/items" element={<ItemsPage />} />
-              <Route path="/items/:id" element={<ItemDetails />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
-              <Route
-                path="/orders"
-                element={
-                  <PrivateRoute>
-                    <Orders />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/orders/:id"
-                element={
-                  <PrivateRoute>
-                    <OrderDetails />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/wishlists"
-                element={
-                  <PrivateRoute>
-                    <WishlistsPage />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/wishlists/:id"
-                element={
-                  <PrivateRoute>
-                    <WishlistDetails />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/items/new"
-                element={
-                  <PrivateRoute>
-                    <CreateItem />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/items/:id/edit"
-                element={
-                  <PrivateRoute>
-                    <EditItem />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/admin"
-                element={
-                  <PrivateRoute>
-                    <Navigate to="/admin/items" replace />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/admin/items"
-                element={
-                  <PrivateRoute>
-                    <ManageItems />
-                  </PrivateRoute>
-                }
-              />
-              <Route
-                path="/admin/users"
-                element={
-                  <PrivateRoute>
-                    <AdminDashboard />
-                  </PrivateRoute>
-                }
-              />
-              <Route path="/admin/register" element={<AdminRegister />} />
-              <Route
-                path="/profile"
-                element={
-                  <PrivateRoute>
-                    <ProfilePage />
-                  </PrivateRoute>
-                }
-              />
-              <Route path="*" element={<Navigate to="/" replace />} />
-            </Route>
-          </Routes>
-        </Suspense>
-      </Router>
+      <AuthProvider>
+        <Router>
+          <Suspense fallback={<Loading />}>
+            <Routes>
+              <Route element={<Layout />}>
+                <Route path="/" element={<HomePage />} />
+                <Route path="/items" element={<ItemsPage />} />
+                <Route path="/items/:id" element={<ItemDetails />} />
+                <Route
+                  path="/login"
+                  element={
+                    <PublicRoute>
+                      <Login />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/register"
+                  element={
+                    <PublicRoute>
+                      <Register />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/orders"
+                  element={
+                    <PrivateRoute>
+                      <Orders />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/orders/:id"
+                  element={
+                    <PrivateRoute>
+                      <OrderDetails />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/wishlists"
+                  element={
+                    <PrivateRoute>
+                      <WishlistsPage />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/wishlists/:id"
+                  element={
+                    <PrivateRoute>
+                      <WishlistDetails />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/items/new"
+                  element={
+                    <PrivateRoute>
+                      <CreateItem />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/items/:id/edit"
+                  element={
+                    <PrivateRoute>
+                      <EditItem />
+                    </PrivateRoute>
+                  }
+                />
+                <Route
+                  path="/admin"
+                  element={
+                    <AdminRoute>
+                      <Navigate to="/admin/items" replace />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/items"
+                  element={
+                    <AdminRoute>
+                      <ManageItems />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/users"
+                  element={
+                    <AdminRoute>
+                      <AdminDashboard />
+                    </AdminRoute>
+                  }
+                />
+                <Route
+                  path="/admin/register"
+                  element={
+                    <PublicRoute>
+                      <AdminRegister />
+                    </PublicRoute>
+                  }
+                />
+                <Route
+                  path="/profile"
+                  element={
+                    <PrivateRoute>
+                      <ProfilePage />
+                    </PrivateRoute>
+                  }
+                />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Route>
+            </Routes>
+          </Suspense>
+        </Router>
+      </AuthProvider>
     </Provider>
   );
 }

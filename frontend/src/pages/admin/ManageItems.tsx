@@ -16,12 +16,8 @@ export default function ManageItems() {
   const [searchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    if (user?.role !== "ADMIN") {
-      navigate("/");
-      return;
-    }
     dispatch(fetchItems({}));
-  }, [dispatch, user, navigate]);
+  }, [dispatch]);
 
   const handleDeleteItem = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this item?")) {
@@ -42,10 +38,6 @@ export default function ManageItems() {
       item.description.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (user?.role !== "ADMIN") {
-    return null;
-  }
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="md:flex md:items-center md:justify-between mb-6">
@@ -64,7 +56,7 @@ export default function ManageItems() {
             className="block w-64 rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500 sm:text-sm"
           />
           <button
-            onClick={() => navigate("/items/create")}
+            onClick={() => navigate("/items/new")}
             className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
           >
             <PlusIcon className="h-5 w-5 mr-2" />

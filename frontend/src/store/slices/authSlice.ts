@@ -87,10 +87,16 @@ export const getCurrentUser = createAsyncThunk<User>(
   async (_, { rejectWithValue, getState }) => {
     try {
       const { auth } = getState() as { auth: AuthState };
-      const response = await axios.get<User>(`${API_URL}/auth/me`, {
+      if (!auth.token) {
+        return rejectWithValue("No token found");
+      }
+
+      const response = await axios.get(`${API_URL}/auth/me`, {
         headers: { Authorization: `Bearer ${auth.token}` },
       });
-      return response.data;
+
+      // The response contains a nested user object
+      return response.data.user;
     } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.error || "Failed to get user data"
