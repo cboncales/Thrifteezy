@@ -16,6 +16,7 @@ import { AdminRegister } from "./pages/auth/AdminRegister";
 import CreateItem from "./pages/items/CreateItem";
 import EditItem from "./pages/items/EditItem";
 import AdminDashboard from "./pages/admin/AdminDashboard";
+import ManageItems from "./pages/admin/ManageItems";
 
 // Lazy-loaded components
 const Layout = lazy(() => import("./components/layout/Layout"));
@@ -105,7 +106,7 @@ function App() {
                 path="/admin/items"
                 element={
                   <PrivateRoute>
-                    <AdminDashboard />
+                    <ManageItems />
                   </PrivateRoute>
                 }
               />
