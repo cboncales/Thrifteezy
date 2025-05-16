@@ -2,6 +2,8 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
 import type { RootState } from "../index";
 
+const API_URL = "http://localhost:5000/api";
+
 export interface Item {
   id: string;
   name: string;
@@ -80,7 +82,7 @@ export const fetchItems = createAsyncThunk(
       if (filters.sortBy) params.append("sortBy", filters.sortBy);
 
       const response = await axios.get<ItemsResponse>(
-        `/api/items?${params.toString()}`
+        `${API_URL}/items?${params.toString()}`
       );
       return response.data;
     } catch (error: any) {
@@ -95,7 +97,7 @@ export const fetchItemById = createAsyncThunk(
   "items/fetchItemById",
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await axios.get<Item>(`/api/items/${id}`);
+      const response = await axios.get<Item>(`${API_URL}/items/${id}`);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
@@ -109,7 +111,7 @@ export const fetchCategories = createAsyncThunk(
   "items/fetchCategories",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get<string[]>("/api/items/categories");
+      const response = await axios.get<string[]>(`${API_URL}/items/categories`);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
@@ -123,7 +125,7 @@ export const createItem = createAsyncThunk(
   "items/createItem",
   async (data: FormData, { rejectWithValue }) => {
     try {
-      const response = await axios.post<Item>("/api/items", data, {
+      const response = await axios.post<Item>(`${API_URL}/items`, data, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -141,7 +143,7 @@ export const updateItem = createAsyncThunk(
   "items/updateItem",
   async ({ id, data }: { id: string; data: FormData }, { rejectWithValue }) => {
     try {
-      const response = await axios.patch<Item>(`/api/items/${id}`, data, {
+      const response = await axios.patch<Item>(`${API_URL}/items/${id}`, data, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -159,7 +161,7 @@ export const deleteItem = createAsyncThunk(
   "items/deleteItem",
   async (id: string, { rejectWithValue }) => {
     try {
-      await axios.delete(`/api/items/${id}`);
+      await axios.delete(`${API_URL}/items/${id}`);
       return id;
     } catch (error: any) {
       return rejectWithValue(

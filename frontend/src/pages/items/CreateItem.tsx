@@ -1,22 +1,6 @@
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "../../hooks/useAuth";
 import { ItemForm } from "../../components/items/ItemForm";
 
 export default function CreateItem() {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
-  useEffect(() => {
-    if (user?.role !== "ADMIN") {
-      navigate("/items");
-    }
-  }, [user, navigate]);
-
-  if (user?.role !== "ADMIN") {
-    return null;
-  }
-
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="md:flex md:items-center md:justify-between mb-6">

@@ -9,26 +9,20 @@ import {
   selectItemsError,
 } from "../../store/slices/itemSlice";
 import { ItemForm } from "../../components/items/ItemForm";
-import { useAuth } from "../../hooks/useAuth";
 
 export default function EditItem() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { user } = useAuth();
   const item = useSelector(selectCurrentItem);
   const isLoading = useSelector(selectItemsLoading);
   const error = useSelector(selectItemsError);
 
   useEffect(() => {
-    if (user?.role !== "ADMIN") {
-      navigate("/items");
-      return;
-    }
     if (id) {
       dispatch(fetchItemById(id));
     }
-  }, [dispatch, id, user, navigate]);
+  }, [dispatch, id]);
 
   if (isLoading) {
     return (

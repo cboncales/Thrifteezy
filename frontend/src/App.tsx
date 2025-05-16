@@ -99,17 +99,17 @@ function App() {
                 <Route
                   path="/items/new"
                   element={
-                    <PrivateRoute>
+                    <AdminRoute>
                       <CreateItem />
-                    </PrivateRoute>
+                    </AdminRoute>
                   }
                 />
                 <Route
                   path="/items/:id/edit"
                   element={
-                    <PrivateRoute>
+                    <AdminRoute>
                       <EditItem />
-                    </PrivateRoute>
+                    </AdminRoute>
                   }
                 />
                 <Route
