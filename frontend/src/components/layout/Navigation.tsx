@@ -1,20 +1,32 @@
 import { Link, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 import {
   HomeIcon,
   ShoppingBagIcon,
   ShoppingCartIcon,
   HeartIcon,
+  UserGroupIcon,
+  CubeIcon,
 } from "@heroicons/react/24/outline";
+import type { RootState } from "../../store";
 
-const navigation = [
+const userNavigation = [
   { name: "Home", href: "/", icon: HomeIcon },
   { name: "Items", href: "/items", icon: ShoppingBagIcon },
   { name: "Orders", href: "/orders", icon: ShoppingCartIcon },
   { name: "Wishlists", href: "/wishlists", icon: HeartIcon },
 ];
 
+const adminNavigation = [
+  { name: "Dashboard", href: "/admin", icon: HomeIcon },
+  { name: "Manage Items", href: "/admin/items", icon: CubeIcon },
+  { name: "Manage Users", href: "/admin/users", icon: UserGroupIcon },
+];
+
 export function Navigation() {
   const location = useLocation();
+  const { user } = useSelector((state: RootState) => state.auth);
+  const navigation = user?.role === "ADMIN" ? adminNavigation : userNavigation;
 
   return (
     <div className="hidden sm:ml-6 sm:flex sm:space-x-4">

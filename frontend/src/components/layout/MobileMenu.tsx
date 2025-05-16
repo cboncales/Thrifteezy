@@ -5,6 +5,8 @@ import {
   ShoppingBagIcon,
   ShoppingCartIcon,
   HeartIcon,
+  UserGroupIcon,
+  CubeIcon,
 } from "@heroicons/react/24/outline";
 import type { User } from "../../types";
 
@@ -13,15 +15,22 @@ interface MobileMenuProps {
   onLogout: () => void;
 }
 
-const navigation = [
+const userNavigation = [
   { name: "Home", href: "/", icon: HomeIcon },
   { name: "Items", href: "/items", icon: ShoppingBagIcon },
   { name: "Orders", href: "/orders", icon: ShoppingCartIcon },
   { name: "Wishlists", href: "/wishlists", icon: HeartIcon },
 ];
 
+const adminNavigation = [
+  { name: "Dashboard", href: "/admin", icon: HomeIcon },
+  { name: "Manage Items", href: "/admin/items", icon: CubeIcon },
+  { name: "Manage Users", href: "/admin/users", icon: UserGroupIcon },
+];
+
 export function MobileMenu({ user, onLogout }: MobileMenuProps) {
   const location = useLocation();
+  const navigation = user?.role === "ADMIN" ? adminNavigation : userNavigation;
 
   return (
     <Disclosure.Panel className="sm:hidden">

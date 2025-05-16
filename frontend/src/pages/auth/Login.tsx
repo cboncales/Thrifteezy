@@ -16,8 +16,12 @@ export const Login = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await dispatch(login(formData)).unwrap();
-      navigate("/");
+      const result = await dispatch(login(formData)).unwrap();
+      if (result.user.role === "ADMIN") {
+        navigate("/admin");
+      } else {
+        navigate("/");
+      }
     } catch (err) {
       // Error is handled by the auth slice
     }

@@ -97,6 +97,22 @@ function App() {
                 path="/admin"
                 element={
                   <PrivateRoute>
+                    <Navigate to="/admin/items" replace />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/admin/items"
+                element={
+                  <PrivateRoute>
+                    <AdminDashboard />
+                  </PrivateRoute>
+                }
+              />
+              <Route
+                path="/admin/users"
+                element={
+                  <PrivateRoute>
                     <AdminDashboard />
                   </PrivateRoute>
                 }

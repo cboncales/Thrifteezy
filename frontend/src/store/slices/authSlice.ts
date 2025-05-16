@@ -121,9 +121,12 @@ export const updateUserRole = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      const response = await axios.patch<User>(`/api/users/${userId}/role`, {
-        role,
-      });
+      const response = await axios.patch<User>(
+        `${API_URL}/users/${userId}/role`,
+        {
+          role,
+        }
+      );
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
@@ -212,7 +215,17 @@ const authSlice = createSlice({
       })
       .addCase(updateUserRole.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.user = action.payload;
+        // Update the user in the users array
+        const index = (state.users as User[]).findIndex(
+          (user) => user.id === action.payload.id
+        );
+        if (index !== -1) {
+          (state.users as User[])[index] = action.payload;
+        }
+        // Also update state.user if it's the current user
+        if (state.user?.id === action.payload.id) {
+          state.user = action.payload;
+        }
       })
       .addCase(updateUserRole.rejected, (state, action) => {
         state.isLoading = false;

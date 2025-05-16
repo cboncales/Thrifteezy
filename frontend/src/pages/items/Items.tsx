@@ -6,12 +6,14 @@ import { fetchItems } from "../../store/slices/itemSlice";
 
 export default function Items() {
   const dispatch = useDispatch<AppDispatch>();
-  const { items, isLoading, error } = useSelector(
-    (state: RootState) => state.items
-  );
+  const {
+    items = [],
+    isLoading,
+    error,
+  } = useSelector((state: RootState) => state.items);
 
   useEffect(() => {
-    dispatch(fetchItems());
+    dispatch(fetchItems({}));
   }, [dispatch]);
 
   if (isLoading) {
