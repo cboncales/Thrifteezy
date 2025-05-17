@@ -6,8 +6,6 @@ import type { AppDispatch, RootState } from "../../store";
 import {
   createItem,
   updateItem,
-  fetchCategories,
-  selectCategories,
   selectItemsLoading,
   selectItemsError,
 } from "../../store/slices/itemSlice";
@@ -38,34 +36,29 @@ interface ItemFormProps {
 export const ItemForm = ({ item, mode }: ItemFormProps) => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const categories = useSelector(selectCategories);
   const isLoading = useSelector(selectItemsLoading);
   const error = useSelector(selectItemsError);
 
   const [formData, setFormData] = useState({
-    name: item?.name || "",
+    title: item?.title || "",
     description: item?.description || "",
     price: item?.price || "",
     category: item?.category || "",
     size: item?.size || "",
     condition: item?.condition || "GOOD",
-    image: null as File | null,
+    photo: null as File | null,
   });
 
   const [imagePreview, setImagePreview] = useState<string | null>(
-    item?.imageUrl || null
+    item?.photoUrl || null
   );
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
-
-  useEffect(() => {
-    dispatch(fetchCategories());
-  }, [dispatch]);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
 
-    if (!formData.name.trim()) {
-      errors.name = "Name is required";
+    if (!formData.title.trim()) {
+      errors.title = "Title is required";
     }
 
     if (!formData.description.trim()) {
@@ -86,8 +79,8 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
       errors.size = "Size is required";
     }
 
-    if (mode === "create" && !formData.image) {
-      errors.image = "Image is required";
+    if (mode === "create" && !formData.photo) {
+      errors.photo = "Image is required";
     }
 
     setFormErrors(errors);
@@ -109,10 +102,10 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFormData((prev) => ({ ...prev, image: file }));
+      setFormData((prev) => ({ ...prev, photo: file }));
       setImagePreview(URL.createObjectURL(file));
-      if (formErrors.image) {
-        setFormErrors((prev) => ({ ...prev, image: "" }));
+      if (formErrors.photo) {
+        setFormErrors((prev) => ({ ...prev, photo: "" }));
       }
     }
   };
@@ -125,14 +118,14 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
     }
 
     const submitData = new FormData();
-    submitData.append("name", formData.name);
+    submitData.append("title", formData.title);
     submitData.append("description", formData.description);
     submitData.append("price", formData.price.toString());
     submitData.append("category", formData.category);
     submitData.append("size", formData.size);
     submitData.append("condition", formData.condition);
-    if (formData.image) {
-      submitData.append("image", formData.image);
+    if (formData.photo) {
+      submitData.append("photo", formData.photo);
     }
 
     try {
@@ -176,28 +169,28 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
         </div>
       )}
 
-      {/* Name */}
+      {/* Title */}
       <div>
         <label
-          htmlFor="name"
+          htmlFor="title"
           className="block text-sm font-medium text-gray-700"
         >
-          Product Name
+          Product Title
         </label>
         <input
           type="text"
-          id="name"
-          name="name"
-          value={formData.name}
+          id="title"
+          name="title"
+          value={formData.title}
           onChange={handleInputChange}
           className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm text-gray-900 ${
-            formErrors.name
+            formErrors.title
               ? "border-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
           }`}
         />
-        {formErrors.name && (
-          <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
+        {formErrors.title && (
+          <p className="mt-1 text-sm text-red-600">{formErrors.title}</p>
         )}
       </div>
 
@@ -359,7 +352,7 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
                   type="button"
                   onClick={() => {
                     setImagePreview(null);
-                    setFormData((prev) => ({ ...prev, image: null }));
+                    setFormData((prev) => ({ ...prev, photo: null }));
                   }}
                   className="absolute -top-2 -right-2 p-1 bg-red-100 rounded-full hover:bg-red-200"
                 >
@@ -387,7 +380,7 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
                     <span>Upload a file</span>
                     <input
                       id="image-upload"
-                      name="image"
+                      name="photo"
                       type="file"
                       accept="image/*"
                       onChange={handleImageChange}
@@ -403,8 +396,8 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
             )}
           </div>
         </div>
-        {formErrors.image && (
-          <p className="mt-1 text-sm text-red-600">{formErrors.image}</p>
+        {formErrors.photo && (
+          <p className="mt-1 text-sm text-red-600">{formErrors.photo}</p>
         )}
       </div>
 

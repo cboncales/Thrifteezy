@@ -6,13 +6,13 @@ const API_URL = "http://localhost:5000/api";
 
 export interface Item {
   id: string;
-  name: string;
+  title: string;
   description: string;
   price: number;
   category: string;
   size: string;
   condition: "NEW" | "LIKE_NEW" | "GOOD" | "FAIR" | "POOR";
-  imageUrl: string;
+  photoUrl: string;
   sellerId: string;
   sellerName: string;
   createdAt: string;
