@@ -124,11 +124,11 @@ export const fetchCategories = createAsyncThunk(
 
 export const createItem = createAsyncThunk(
   "items/createItem",
-  async (data: FormData, { rejectWithValue }) => {
+  async (data: any, { rejectWithValue }) => {
     try {
       const response = await axios.post<Item>(`${API_URL}/items`, data, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
         },
       });
       return response.data;
@@ -142,11 +142,11 @@ export const createItem = createAsyncThunk(
 
 export const updateItem = createAsyncThunk(
   "items/updateItem",
-  async ({ id, data }: { id: string; data: FormData }, { rejectWithValue }) => {
+  async ({ id, data }: { id: string; data: any }, { rejectWithValue }) => {
     try {
       const response = await axios.patch<Item>(`${API_URL}/items/${id}`, data, {
         headers: {
-          "Content-Type": "multipart/form-data",
+          "Content-Type": "application/json",
         },
       });
       return response.data;

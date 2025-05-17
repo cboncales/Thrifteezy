@@ -117,60 +117,54 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
       return;
     }
 
-    const submitData = new FormData();
-    submitData.append("title", formData.title);
-    submitData.append("description", formData.description);
-    submitData.append("price", formData.price.toString());
-    submitData.append("category", formData.category);
-    submitData.append("size", formData.size);
-    submitData.append("condition", formData.condition);
+    // For debugging
+    console.log("Form data before submission:", formData);
 
-    // The backend is directly looking for photoUrl in the body, not handling file upload
-    // We need to get a URL or use a placeholder for now
-    if (formData.photo) {
-      // For now, use a placeholder URL. You'll need to implement actual file upload
-      // or send the base64 data of the image
-      const reader = new FileReader();
-      reader.onload = async (event) => {
-        if (event.target && event.target.result) {
-          submitData.append("photoUrl", event.target.result.toString());
+    // Create a simple object instead of FormData
+    const itemData = {
+      title: formData.title,
+      description: formData.description,
+      price: formData.price.toString(),
+      category: formData.category,
+      size: formData.size,
+      condition: formData.condition,
+      // Use a placeholder image URL since we're having issues with file upload
+      photoUrl: "https://via.placeholder.com/300",
+    };
 
-          try {
-            if (mode === "create") {
-              await dispatch(createItem(submitData)).unwrap();
-              navigate("/admin/items");
-            } else if (item) {
-              await dispatch(
-                updateItem({ id: item.id, data: submitData })
-              ).unwrap();
-              navigate(`/items/${item.id}`);
-            }
-          } catch (error) {
-            console.error("Failed to save item:", error);
-          }
+    console.log("Submitting item data:", itemData);
+
+    try {
+      if (mode === "create") {
+        // Get the authentication token
+        const token = localStorage.getItem("token");
+
+        // Make direct API call to the backend with proper authorization
+        const response = await fetch("http://localhost:5000/api/items", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify(itemData),
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          console.error("API Response Error:", errorData);
+          throw new Error(errorData.error || "Failed to create item");
         }
-      };
-      reader.readAsDataURL(formData.photo);
-    } else {
-      // If no new photo, use a placeholder or existing URL
-      submitData.append(
-        "photoUrl",
-        item?.photoUrl || "https://via.placeholder.com/150"
-      );
 
-      try {
-        if (mode === "create") {
-          await dispatch(createItem(submitData)).unwrap();
-          navigate("/admin/items");
-        } else if (item) {
-          await dispatch(
-            updateItem({ id: item.id, data: submitData })
-          ).unwrap();
-          navigate(`/items/${item.id}`);
-        }
-      } catch (error) {
-        console.error("Failed to save item:", error);
+        const data = await response.json();
+        console.log("API Response Success:", data);
+
+        navigate("/admin/items");
+      } else if (item) {
+        await dispatch(updateItem({ id: item.id, data: itemData })).unwrap();
+        navigate(`/items/${item.id}`);
       }
+    } catch (error) {
+      console.error("Failed to save item:", error);
     }
   };
 

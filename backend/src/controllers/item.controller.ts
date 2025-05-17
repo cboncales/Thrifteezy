@@ -7,13 +7,35 @@ const prisma = new PrismaClient();
 // Create a new item
 export const createItem = async (req: Request, res: Response) => {
   try {
+    console.log("Request body:", req.body);
+    console.log("Headers:", req.headers);
+
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log("Validation errors:", errors.array());
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { title, description, price, size, condition, photoUrl } = req.body;
-    const userId = req.user!.id;
+    const { title, description, price, size, condition, photoUrl, category } =
+      req.body;
+
+    console.log("Extracted fields:", {
+      title,
+      description,
+      price,
+      size,
+      condition,
+      photoUrl,
+      category,
+    });
+
+    if (!req.user) {
+      console.log("No user in request");
+      return res.status(401).json({ error: "User not authenticated" });
+    }
+
+    const userId = req.user.id;
+    console.log("User ID:", userId);
 
     const item = await prisma.items.create({
       data: {
@@ -21,12 +43,14 @@ export const createItem = async (req: Request, res: Response) => {
         description,
         price: parseFloat(price),
         size,
+        category,
         condition,
         photoUrl,
         userId,
       },
     });
 
+    console.log("Created item:", item);
     res.status(201).json({ item });
   } catch (error) {
     console.error("Create item error:", error);

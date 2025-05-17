@@ -34,8 +34,8 @@ export default function ManageItems() {
 
   const filteredItems = items.filter(
     (item) =>
-      item.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      item.description.toLowerCase().includes(searchTerm.toLowerCase())
+      item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.description?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   return (
@@ -85,14 +85,14 @@ export default function ManageItems() {
                     <div className="flex items-center space-x-4">
                       <div className="flex-shrink-0 h-16 w-16">
                         <img
-                          src={item.imageUrl}
-                          alt={item.name}
+                          src={item.photoUrl}
+                          alt={item.title}
                           className="h-16 w-16 rounded-lg object-cover"
                         />
                       </div>
                       <div>
                         <h3 className="text-lg font-medium text-gray-900">
-                          {item.name}
+                          {item.title}
                         </h3>
                         <p className="text-sm text-gray-500 line-clamp-2">
                           {item.description}
@@ -101,7 +101,7 @@ export default function ManageItems() {
                           <span>${item.price.toFixed(2)}</span>
                           <span>•</span>
                           <span className="capitalize">
-                            {item.condition.toLowerCase()}
+                            {item.condition?.toLowerCase() || "Unknown"}
                           </span>
                           <span>•</span>
                           <span>{item.category}</span>
