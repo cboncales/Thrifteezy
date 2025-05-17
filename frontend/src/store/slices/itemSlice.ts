@@ -10,6 +10,7 @@ export interface Item {
   description: string;
   price: number;
   category: string;
+  size: string;
   condition: "NEW" | "LIKE_NEW" | "GOOD" | "FAIR" | "POOR";
   imageUrl: string;
   sellerId: string;

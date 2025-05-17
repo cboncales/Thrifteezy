@@ -13,6 +13,23 @@ import {
 } from "../../store/slices/itemSlice";
 import type { Item } from "../../store/slices/itemSlice";
 
+// Predefined categories
+const PREDEFINED_CATEGORIES = [
+  "T-Shirt",
+  "Polo",
+  "Jacket",
+  "Pants",
+  "Shorts",
+  "Trouser",
+  "Shoes",
+  "Bags",
+  "Cap/Hat",
+  "Other",
+];
+
+// Predefined sizes
+const PREDEFINED_SIZES = ["XS", "S", "M", "L", "XL", "XXL", "One Size"];
+
 interface ItemFormProps {
   item?: Item;
   mode: "create" | "edit";
@@ -30,6 +47,7 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
     description: item?.description || "",
     price: item?.price || "",
     category: item?.category || "",
+    size: item?.size || "",
     condition: item?.condition || "GOOD",
     image: null as File | null,
   });
@@ -62,6 +80,10 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
 
     if (!formData.category) {
       errors.category = "Category is required";
+    }
+
+    if (!formData.size) {
+      errors.size = "Size is required";
     }
 
     if (mode === "create" && !formData.image) {
@@ -107,6 +129,7 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
     submitData.append("description", formData.description);
     submitData.append("price", formData.price.toString());
     submitData.append("category", formData.category);
+    submitData.append("size", formData.size);
     submitData.append("condition", formData.condition);
     if (formData.image) {
       submitData.append("image", formData.image);
@@ -115,7 +138,7 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
     try {
       if (mode === "create") {
         await dispatch(createItem(submitData)).unwrap();
-        navigate("/items");
+        navigate("/admin/items");
       } else if (item) {
         await dispatch(updateItem({ id: item.id, data: submitData })).unwrap();
         navigate(`/items/${item.id}`);
@@ -159,7 +182,7 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
           htmlFor="name"
           className="block text-sm font-medium text-gray-700"
         >
-          Name
+          Product Name
         </label>
         <input
           type="text"
@@ -167,7 +190,7 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
           name="name"
           value={formData.name}
           onChange={handleInputChange}
-          className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+          className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm text-gray-900 ${
             formErrors.name
               ? "border-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -192,7 +215,7 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
           rows={4}
           value={formData.description}
           onChange={handleInputChange}
-          className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+          className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm text-gray-900 ${
             formErrors.description
               ? "border-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -213,7 +236,7 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
         </label>
         <div className="mt-1 relative rounded-md shadow-sm">
           <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <span className="text-gray-500 sm:text-sm">$</span>
+            <span className="text-gray-500 sm:text-sm">₱</span>
           </div>
           <input
             type="number"
@@ -223,7 +246,7 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
             onChange={handleInputChange}
             step="0.01"
             min="0"
-            className={`block w-full pl-7 pr-12 rounded-md shadow-sm sm:text-sm ${
+            className={`block w-full pl-7 pr-12 rounded-md shadow-sm sm:text-sm text-gray-900 ${
               formErrors.price
                 ? "border-red-300 focus:border-red-500 focus:ring-red-500"
                 : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
@@ -248,14 +271,14 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
           name="category"
           value={formData.category}
           onChange={handleInputChange}
-          className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm ${
+          className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm text-gray-900 ${
             formErrors.category
               ? "border-red-300 focus:border-red-500 focus:ring-red-500"
               : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
           }`}
         >
           <option value="">Select a category</option>
-          {categories.map((category) => (
+          {PREDEFINED_CATEGORIES.map((category) => (
             <option key={category} value={category}>
               {category}
             </option>
@@ -263,6 +286,37 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
         </select>
         {formErrors.category && (
           <p className="mt-1 text-sm text-red-600">{formErrors.category}</p>
+        )}
+      </div>
+
+      {/* Size */}
+      <div>
+        <label
+          htmlFor="size"
+          className="block text-sm font-medium text-gray-700"
+        >
+          Size
+        </label>
+        <select
+          id="size"
+          name="size"
+          value={formData.size}
+          onChange={handleInputChange}
+          className={`mt-1 block w-full rounded-md shadow-sm sm:text-sm text-gray-900 ${
+            formErrors.size
+              ? "border-red-300 focus:border-red-500 focus:ring-red-500"
+              : "border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+          }`}
+        >
+          <option value="">Select a size</option>
+          {PREDEFINED_SIZES.map((size) => (
+            <option key={size} value={size}>
+              {size}
+            </option>
+          ))}
+        </select>
+        {formErrors.size && (
+          <p className="mt-1 text-sm text-red-600">{formErrors.size}</p>
         )}
       </div>
 
@@ -279,7 +333,7 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
           name="condition"
           value={formData.condition}
           onChange={handleInputChange}
-          className="mt-1 block w-full rounded-md shadow-sm sm:text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+          className="mt-1 block w-full rounded-md shadow-sm sm:text-sm text-gray-900 border-gray-300 focus:border-blue-500 focus:ring-blue-500"
         >
           <option value="NEW">New</option>
           <option value="LIKE_NEW">Like New</option>
