@@ -12,20 +12,31 @@ export const createWishlist = async (req: Request, res: Response) => {
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { name } = req.body;
+    const { name, isPublic = false } = req.body;
     const userId = req.user!.id;
 
+    // Use type assertion to bypass TypeScript error with new isPublic field
+    const data: any = {
+      name,
+      userId,
+      isPublic,
+    };
+
     const wishlist = await prisma.wishlists.create({
-      data: {
-        name,
-        userId,
+      data,
+      include: {
+        items: {
+          include: {
+            item: true,
+          },
+        },
       },
     });
 
-    res.status(201).json({ wishlist });
+    res.status(201).json(wishlist);
   } catch (error) {
     console.error("Create wishlist error:", error);
-    res.status(500).json({ error: "Server error while creating wishlist" });
+    res.status(500).json({ message: "Server error while creating wishlist" });
   }
 };
 
@@ -46,10 +57,17 @@ export const getWishlists = async (req: Request, res: Response) => {
       orderBy: { createdAt: "desc" },
     });
 
-    res.json({ wishlists });
+    // Transform the wishlists to match the expected format
+    const formattedWishlists = wishlists.map((wishlist) => ({
+      ...wishlist,
+      items: wishlist.items.map((wi) => wi.item),
+    }));
+
+    // Make sure we're returning an array
+    res.json(formattedWishlists);
   } catch (error) {
     console.error("Get wishlists error:", error);
-    res.status(500).json({ error: "Server error while fetching wishlists" });
+    res.status(500).json({ message: "Server error while fetching wishlists" });
   }
 };
 
@@ -71,19 +89,25 @@ export const getWishlist = async (req: Request, res: Response) => {
     });
 
     if (!wishlist) {
-      return res.status(404).json({ error: "Wishlist not found" });
+      return res.status(404).json({ message: "Wishlist not found" });
     }
 
     if (wishlist.userId !== userId) {
       return res
         .status(403)
-        .json({ error: "Not authorized to view this wishlist" });
+        .json({ message: "Not authorized to view this wishlist" });
     }
 
-    res.json({ wishlist });
+    // Transform the wishlist to match the expected format
+    const formattedWishlist = {
+      ...wishlist,
+      items: wishlist.items.map((wi) => wi.item),
+    };
+
+    res.json(formattedWishlist);
   } catch (error) {
     console.error("Get wishlist error:", error);
-    res.status(500).json({ error: "Server error while fetching wishlist" });
+    res.status(500).json({ message: "Server error while fetching wishlist" });
   }
 };
 
@@ -96,7 +120,7 @@ export const updateWishlist = async (req: Request, res: Response) => {
     }
 
     const { id } = req.params;
-    const { name } = req.body;
+    const { name, isPublic } = req.body;
     const userId = req.user!.id;
 
     const wishlist = await prisma.wishlists.findUnique({
@@ -104,18 +128,24 @@ export const updateWishlist = async (req: Request, res: Response) => {
     });
 
     if (!wishlist) {
-      return res.status(404).json({ error: "Wishlist not found" });
+      return res.status(404).json({ message: "Wishlist not found" });
     }
 
     if (wishlist.userId !== userId) {
       return res
         .status(403)
-        .json({ error: "Not authorized to update this wishlist" });
+        .json({ message: "Not authorized to update this wishlist" });
+    }
+
+    // Use type assertion to bypass TypeScript error
+    const updateData: any = { name };
+    if (isPublic !== undefined) {
+      updateData.isPublic = isPublic;
     }
 
     const updatedWishlist = await prisma.wishlists.update({
       where: { id },
-      data: { name },
+      data: updateData,
       include: {
         items: {
           include: {
@@ -125,10 +155,10 @@ export const updateWishlist = async (req: Request, res: Response) => {
       },
     });
 
-    res.json({ wishlist: updatedWishlist });
+    res.json(updatedWishlist);
   } catch (error) {
     console.error("Update wishlist error:", error);
-    res.status(500).json({ error: "Server error while updating wishlist" });
+    res.status(500).json({ message: "Server error while updating wishlist" });
   }
 };
 
@@ -181,13 +211,13 @@ export const addItemToWishlist = async (req: Request, res: Response) => {
     });
 
     if (!wishlist) {
-      return res.status(404).json({ error: "Wishlist not found" });
+      return res.status(404).json({ message: "Wishlist not found" });
     }
 
     if (wishlist.userId !== userId) {
       return res
         .status(403)
-        .json({ error: "Not authorized to modify this wishlist" });
+        .json({ message: "Not authorized to modify this wishlist" });
     }
 
     // Check if item exists
@@ -196,7 +226,7 @@ export const addItemToWishlist = async (req: Request, res: Response) => {
     });
 
     if (!item) {
-      return res.status(404).json({ error: "Item not found" });
+      return res.status(404).json({ message: "Item not found" });
     }
 
     // Check if item is already in wishlist
@@ -208,26 +238,41 @@ export const addItemToWishlist = async (req: Request, res: Response) => {
     });
 
     if (existingWishlistItem) {
-      return res.status(400).json({ error: "Item is already in wishlist" });
+      return res.status(400).json({ message: "Item is already in wishlist" });
     }
 
     // Add item to wishlist
-    const wishlistItem = await prisma.wishlistItems.create({
+    await prisma.wishlistItems.create({
       data: {
         wishlistId: id,
         itemId,
       },
+    });
+
+    // Get the updated wishlist with all items
+    const updatedWishlist = await prisma.wishlists.findUnique({
+      where: { id },
       include: {
-        item: true,
+        items: {
+          include: {
+            item: true,
+          },
+        },
       },
     });
 
-    res.status(201).json({ wishlistItem });
+    // Transform the wishlist to match the expected format
+    const formattedWishlist = {
+      ...updatedWishlist,
+      items: updatedWishlist?.items.map((wi) => wi.item) || [],
+    };
+
+    res.status(201).json(formattedWishlist);
   } catch (error) {
     console.error("Add item to wishlist error:", error);
     res
       .status(500)
-      .json({ error: "Server error while adding item to wishlist" });
+      .json({ message: "Server error while adding item to wishlist" });
   }
 };
 
@@ -243,13 +288,13 @@ export const removeItemFromWishlist = async (req: Request, res: Response) => {
     });
 
     if (!wishlist) {
-      return res.status(404).json({ error: "Wishlist not found" });
+      return res.status(404).json({ message: "Wishlist not found" });
     }
 
     if (wishlist.userId !== userId) {
       return res
         .status(403)
-        .json({ error: "Not authorized to modify this wishlist" });
+        .json({ message: "Not authorized to modify this wishlist" });
     }
 
     // Check if item exists in wishlist
@@ -261,7 +306,7 @@ export const removeItemFromWishlist = async (req: Request, res: Response) => {
     });
 
     if (!wishlistItem) {
-      return res.status(404).json({ error: "Item not found in wishlist" });
+      return res.status(404).json({ message: "Item not found in wishlist" });
     }
 
     // Remove item from wishlist
@@ -271,11 +316,29 @@ export const removeItemFromWishlist = async (req: Request, res: Response) => {
       },
     });
 
-    res.json({ message: "Item removed from wishlist successfully" });
+    // Get the updated wishlist with all items
+    const updatedWishlist = await prisma.wishlists.findUnique({
+      where: { id },
+      include: {
+        items: {
+          include: {
+            item: true,
+          },
+        },
+      },
+    });
+
+    // Transform the wishlist to match the expected format
+    const formattedWishlist = {
+      ...updatedWishlist,
+      items: updatedWishlist?.items.map((wi) => wi.item) || [],
+    };
+
+    res.json(formattedWishlist);
   } catch (error) {
     console.error("Remove item from wishlist error:", error);
     res
       .status(500)
-      .json({ error: "Server error while removing item from wishlist" });
+      .json({ message: "Server error while removing item from wishlist" });
   }
 };

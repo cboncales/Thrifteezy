@@ -6,11 +6,13 @@ import {
   fetchWishlists,
   createWishlist,
   deleteWishlist,
+  selectWishlists,
 } from "../../store/slices/wishlistsSlice";
 
 export default function Wishlists() {
   const dispatch = useDispatch<AppDispatch>();
-  const { wishlists, isLoading, error } = useSelector(
+  const wishlists = useSelector(selectWishlists);
+  const { isLoading, error } = useSelector(
     (state: RootState) => state.wishlists
   );
   const [isCreating, setIsCreating] = useState(false);
@@ -18,7 +20,9 @@ export default function Wishlists() {
   const [isPublic, setIsPublic] = useState(false);
 
   useEffect(() => {
-    dispatch(fetchWishlists());
+    dispatch(fetchWishlists()).then((action) => {
+      console.log("Fetched wishlists:", action.payload);
+    });
   }, [dispatch]);
 
   const handleCreateWishlist = async (e: React.FormEvent) => {
@@ -125,7 +129,7 @@ export default function Wishlists() {
         </div>
       )}
 
-      {wishlists.length === 0 ? (
+      {Array.isArray(wishlists) && wishlists.length === 0 ? (
         <div className="text-center py-12 bg-white shadow sm:rounded-lg">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">
             No wishlists yet
@@ -142,48 +146,49 @@ export default function Wishlists() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {wishlists.map((wishlist) => (
-            <div
-              key={wishlist.id}
-              className="bg-white shadow sm:rounded-lg overflow-hidden"
-            >
-              <div className="p-6">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900">
-                      {wishlist.name}
-                    </h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      {wishlist.items.length} items
-                    </p>
+          {Array.isArray(wishlists) &&
+            wishlists.map((wishlist) => (
+              <div
+                key={wishlist.id}
+                className="bg-white shadow sm:rounded-lg overflow-hidden"
+              >
+                <div className="p-6">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900">
+                        {wishlist.name}
+                      </h3>
+                      <p className="mt-1 text-sm text-gray-500">
+                        {wishlist.items.length} items
+                      </p>
+                    </div>
+                    <span
+                      className={`px-2 py-1 text-xs font-medium rounded-full ${
+                        wishlist.isPublic
+                          ? "bg-green-100 text-green-800"
+                          : "bg-gray-100 text-gray-800"
+                      }`}
+                    >
+                      {wishlist.isPublic ? "Public" : "Private"}
+                    </span>
                   </div>
-                  <span
-                    className={`px-2 py-1 text-xs font-medium rounded-full ${
-                      wishlist.isPublic
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
-                    }`}
-                  >
-                    {wishlist.isPublic ? "Public" : "Private"}
-                  </span>
-                </div>
-                <div className="mt-4 flex justify-between items-center">
-                  <Link
-                    to={`/wishlists/${wishlist.id}`}
-                    className="text-sm font-medium text-purple-600 hover:text-purple-500"
-                  >
-                    View Details
-                  </Link>
-                  <button
-                    onClick={() => handleDeleteWishlist(wishlist.id)}
-                    className="text-sm font-medium text-red-600 hover:text-red-500"
-                  >
-                    Delete
-                  </button>
+                  <div className="mt-4 flex justify-between items-center">
+                    <Link
+                      to={`/wishlists/${wishlist.id}`}
+                      className="text-sm font-medium text-purple-600 hover:text-purple-500"
+                    >
+                      View Details
+                    </Link>
+                    <button
+                      onClick={() => handleDeleteWishlist(wishlist.id)}
+                      className="text-sm font-medium text-red-600 hover:text-red-500"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
         </div>
       )}
     </div>

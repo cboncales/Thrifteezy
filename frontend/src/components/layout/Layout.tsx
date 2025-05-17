@@ -8,6 +8,7 @@ import { logout } from "../../store/slices/authSlice";
 import { Navigation } from "./Navigation";
 import { UserMenu } from "./UserMenu";
 import { MobileMenu } from "./MobileMenu";
+import { Toaster } from "react-hot-toast";
 
 export function classNames(...classes: string[]) {
   return classes.filter(Boolean).join(" ");
@@ -87,6 +88,9 @@ export default function Layout() {
       <main>
         <Outlet />
       </main>
+
+      {/* Add Toaster for notifications */}
+      <Toaster position="top-right" />
     </div>
   );
 }

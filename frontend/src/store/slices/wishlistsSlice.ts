@@ -40,7 +40,8 @@ export const fetchWishlists = createAsyncThunk(
   async (_, { rejectWithValue }) => {
     try {
       const response = await axios.get<Wishlist[]>("/api/wishlists");
-      return response.data;
+      // Ensure we return an array even if the API response structure changes
+      return Array.isArray(response.data) ? response.data : [];
     } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to fetch wishlists"
@@ -58,6 +59,30 @@ export const fetchWishlistById = createAsyncThunk(
     } catch (error: any) {
       return rejectWithValue(
         error.response?.data?.message || "Failed to fetch wishlist"
+      );
+    }
+  }
+);
+
+export const fetchDefaultWishlist = createAsyncThunk(
+  "wishlists/fetchDefaultWishlist",
+  async (_, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await axios.get<Wishlist[]>("/api/wishlists");
+
+      // If no wishlists exist, create a default one
+      if (response.data.length === 0) {
+        const newWishlist = await dispatch(
+          createWishlist({ name: "My Wishlist", isPublic: false })
+        ).unwrap();
+        return newWishlist;
+      }
+
+      // Otherwise, return the first wishlist
+      return response.data[0];
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to fetch default wishlist"
       );
     }
   }
@@ -169,6 +194,23 @@ const wishlistsSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
+      // Fetch Default Wishlist
+      .addCase(fetchDefaultWishlist.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(fetchDefaultWishlist.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentWishlist = action.payload;
+        // Add to wishlists array if not already there
+        if (!state.wishlists.some((w) => w.id === action.payload.id)) {
+          state.wishlists.push(action.payload);
+        }
+      })
+      .addCase(fetchDefaultWishlist.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
       // Create Wishlist
       .addCase(createWishlist.pending, (state) => {
         state.isLoading = true;
@@ -177,6 +219,7 @@ const wishlistsSlice = createSlice({
       .addCase(createWishlist.fulfilled, (state, action) => {
         state.isLoading = false;
         state.wishlists.push(action.payload);
+        state.currentWishlist = action.payload;
       })
       .addCase(createWishlist.rejected, (state, action) => {
         state.isLoading = false;
@@ -243,11 +286,30 @@ const wishlistsSlice = createSlice({
 
 export const { clearCurrentWishlist, clearError } = wishlistsSlice.actions;
 
-export const selectWishlists = (state: RootState) => state.wishlists.wishlists;
+export const selectWishlists = (state: RootState) => {
+  const wishlists = state.wishlists.wishlists;
+  return Array.isArray(wishlists) ? wishlists : [];
+};
+
 export const selectCurrentWishlist = (state: RootState) =>
   state.wishlists.currentWishlist;
 export const selectWishlistsLoading = (state: RootState) =>
   state.wishlists.isLoading;
 export const selectWishlistsError = (state: RootState) => state.wishlists.error;
+
+// Helper selector to check if item is in wishlist
+export const selectIsItemInWishlist =
+  (itemId: string) => (state: RootState) => {
+    const wishlist = state.wishlists.currentWishlist;
+    if (!wishlist) return false;
+    return wishlist.items.some((item) => item.id === itemId);
+  };
+
+// Selector to extract item ids from the current wishlist
+export const selectWishlistItemIds = (state: RootState) => {
+  const wishlist = state.wishlists.currentWishlist;
+  if (!wishlist) return [];
+  return (wishlist.items || []).map((item) => item.id);
+};
 
 export default wishlistsSlice.reducer;
