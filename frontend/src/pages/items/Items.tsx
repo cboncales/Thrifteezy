@@ -1,19 +1,10 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Link } from "react-router-dom";
 import { FunnelIcon, MagnifyingGlassIcon } from "@heroicons/react/24/outline";
-import { HeartIcon as HeartOutline } from "@heroicons/react/24/outline";
-import { HeartIcon as HeartSolid } from "@heroicons/react/24/solid";
 import type { AppDispatch, RootState } from "../../store";
 import { fetchItems } from "../../store/slices/itemSlice";
-import {
-  addToWishlist,
-  removeFromWishlist,
-  selectWishlistItemIds,
-  fetchDefaultWishlist,
-  selectCurrentWishlist,
-} from "../../store/slices/wishlistsSlice";
-import { toast } from "react-hot-toast";
+import { fetchDefaultWishlist } from "../../store/slices/wishlistsSlice";
+import { ItemCard } from "../../components/items/ItemCard";
 
 export default function Items() {
   const dispatch = useDispatch<AppDispatch>();
@@ -22,13 +13,6 @@ export default function Items() {
     isLoading,
     error,
   } = useSelector((state: RootState) => state.items);
-
-  // Get wishlist items from Redux store
-  const wishlistItemIds = useSelector(selectWishlistItemIds);
-  const currentWishlist = useSelector(selectCurrentWishlist);
-  const wishlistLoading = useSelector(
-    (state: RootState) => state.wishlists.isLoading
-  );
 
   // Filter states
   const [searchTerm, setSearchTerm] = useState("");
@@ -78,41 +62,6 @@ export default function Items() {
     setPriceRange([0, 1000]);
     setSelectedCategory("");
     setSelectedSize("");
-  };
-
-  // Check if an item is in the wishlist
-  const isItemInWishlist = (itemId: string) => {
-    return wishlistItemIds.includes(itemId);
-  };
-
-  // Handle wishlist toggle
-  const handleToggleWishlist = async (e: React.MouseEvent, itemId: string) => {
-    e.preventDefault();
-    e.stopPropagation();
-
-    // If no wishlist is loaded yet, fetch the default wishlist
-    if (!currentWishlist && !wishlistLoading) {
-      await dispatch(fetchDefaultWishlist());
-    }
-
-    if (!currentWishlist) {
-      toast.error("Unable to access wishlist. Please try again.");
-      return;
-    }
-
-    const wishlistId = currentWishlist.id;
-
-    try {
-      if (isItemInWishlist(itemId)) {
-        await dispatch(removeFromWishlist({ wishlistId, itemId })).unwrap();
-        toast.success("Removed from wishlist");
-      } else {
-        await dispatch(addToWishlist({ wishlistId, itemId })).unwrap();
-        toast.success("Added to wishlist");
-      }
-    } catch (error: any) {
-      toast.error(error.message || "Error updating wishlist");
-    }
   };
 
   if (isLoading) {
@@ -290,63 +239,9 @@ export default function Items() {
         </div>
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {filteredItems.map((item) => {
-            const inWishlist = isItemInWishlist(item.id);
-
-            return (
-              <div key={item.id} className="group relative">
-                <Link
-                  to={`/items/${item.id}`}
-                  className="bg-white shadow rounded-lg overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col h-full"
-                >
-                  <div className="relative aspect-w-1 aspect-h-1 overflow-hidden">
-                    <img
-                      src={item.photoUrl}
-                      alt={item.title}
-                      className="w-full h-64 object-cover transform group-hover:scale-105 transition-transform duration-300"
-                    />
-                    <div className="absolute top-0 right-0 p-2">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                        {item.condition}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="p-4 flex-grow flex flex-col">
-                    <div className="flex justify-between items-start">
-                      <h3 className="text-lg font-medium text-gray-900 group-hover:text-purple-600 transition-colors">
-                        {item.title}
-                      </h3>
-                      <p className="text-lg font-bold text-purple-600">
-                        ₱{item.price.toFixed(2)}
-                      </p>
-                    </div>
-                    <p className="mt-2 text-sm text-gray-500 line-clamp-2 flex-grow">
-                      {item.description}
-                    </p>
-                    <div className="mt-3 flex justify-between items-center">
-                      <span className="text-sm text-gray-500">{item.size}</span>
-                      <span className="text-sm text-gray-500">
-                        {item.category}
-                      </span>
-                    </div>
-                  </div>
-                </Link>
-                <button
-                  className="absolute top-3 left-3 p-1.5 rounded-full bg-white bg-opacity-70 hover:bg-opacity-100 transition-all duration-200"
-                  onClick={(e) => handleToggleWishlist(e, item.id)}
-                  aria-label={
-                    inWishlist ? "Remove from wishlist" : "Add to wishlist"
-                  }
-                >
-                  {inWishlist ? (
-                    <HeartSolid className="h-5 w-5 text-pink-500" />
-                  ) : (
-                    <HeartOutline className="h-5 w-5 text-gray-400 hover:text-pink-500" />
-                  )}
-                </button>
-              </div>
-            );
-          })}
+          {filteredItems.map((item) => (
+            <ItemCard key={item.id} item={item} />
+          ))}
         </div>
       )}
     </div>
