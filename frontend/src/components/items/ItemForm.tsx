@@ -124,20 +124,53 @@ export const ItemForm = ({ item, mode }: ItemFormProps) => {
     submitData.append("category", formData.category);
     submitData.append("size", formData.size);
     submitData.append("condition", formData.condition);
-    if (formData.photo) {
-      submitData.append("photo", formData.photo);
-    }
 
-    try {
-      if (mode === "create") {
-        await dispatch(createItem(submitData)).unwrap();
-        navigate("/admin/items");
-      } else if (item) {
-        await dispatch(updateItem({ id: item.id, data: submitData })).unwrap();
-        navigate(`/items/${item.id}`);
+    // The backend is directly looking for photoUrl in the body, not handling file upload
+    // We need to get a URL or use a placeholder for now
+    if (formData.photo) {
+      // For now, use a placeholder URL. You'll need to implement actual file upload
+      // or send the base64 data of the image
+      const reader = new FileReader();
+      reader.onload = async (event) => {
+        if (event.target && event.target.result) {
+          submitData.append("photoUrl", event.target.result.toString());
+
+          try {
+            if (mode === "create") {
+              await dispatch(createItem(submitData)).unwrap();
+              navigate("/admin/items");
+            } else if (item) {
+              await dispatch(
+                updateItem({ id: item.id, data: submitData })
+              ).unwrap();
+              navigate(`/items/${item.id}`);
+            }
+          } catch (error) {
+            console.error("Failed to save item:", error);
+          }
+        }
+      };
+      reader.readAsDataURL(formData.photo);
+    } else {
+      // If no new photo, use a placeholder or existing URL
+      submitData.append(
+        "photoUrl",
+        item?.photoUrl || "https://via.placeholder.com/150"
+      );
+
+      try {
+        if (mode === "create") {
+          await dispatch(createItem(submitData)).unwrap();
+          navigate("/admin/items");
+        } else if (item) {
+          await dispatch(
+            updateItem({ id: item.id, data: submitData })
+          ).unwrap();
+          navigate(`/items/${item.id}`);
+        }
+      } catch (error) {
+        console.error("Failed to save item:", error);
       }
-    } catch (error) {
-      console.error("Failed to save item:", error);
     }
   };
 

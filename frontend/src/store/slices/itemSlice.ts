@@ -13,8 +13,8 @@ export interface Item {
   size: string;
   condition: "NEW" | "LIKE_NEW" | "GOOD" | "FAIR" | "POOR";
   photoUrl: string;
-  sellerId: string;
-  sellerName: string;
+  userId: string;
+  status?: string;
   createdAt: string;
   updatedAt: string;
 }
