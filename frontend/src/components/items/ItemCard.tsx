@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import type { Item } from "../../types/item";
+import type { Item } from "../../store/slices/itemSlice";
 
 interface ItemCardProps {
   item: Item;
@@ -19,14 +19,14 @@ export const ItemCard = ({
       <Link to={`/items/${item.id}`}>
         <div className="relative pb-[100%]">
           <img
-            src={item.imageUrl}
-            alt={item.name}
+            src={item.photoUrl}
+            alt={item.title}
             className="absolute inset-0 w-full h-full object-cover"
           />
         </div>
         <div className="p-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-2 truncate">
-            {item.name}
+            {item.title}
           </h3>
           <div className="flex justify-between items-center">
             <p className="text-purple-600 font-bold">
