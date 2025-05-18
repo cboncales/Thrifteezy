@@ -75,7 +75,7 @@ export default function WishlistDetails() {
         </span>
       </div>
 
-      {currentWishlist.items.length === 0 ? (
+      {(currentWishlist.items?.length || 0) === 0 ? (
         <div className="text-center py-12 bg-white shadow sm:rounded-lg">
           <h2 className="text-2xl font-semibold text-gray-900 mb-4">
             No items in this wishlist
@@ -93,7 +93,7 @@ export default function WishlistDetails() {
       ) : (
         <div className="bg-white shadow overflow-hidden sm:rounded-lg">
           <ul className="divide-y divide-gray-200">
-            {currentWishlist.items.map((item) => (
+            {currentWishlist.items?.map((item) => (
               <li key={item.id} className="p-6">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -112,7 +112,7 @@ export default function WishlistDetails() {
                         {item.description}
                       </p>
                       <p className="mt-1 text-sm font-medium text-gray-900">
-                        ${item.price.toFixed(2)}
+                        ₱{item.price.toFixed(2)}
                       </p>
                     </div>
                   </div>

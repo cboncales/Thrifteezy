@@ -4,29 +4,47 @@ import { Link } from "react-router-dom";
 import type { AppDispatch, RootState } from "../../store";
 import {
   fetchWishlists,
-  deleteWishlist,
+  fetchDefaultWishlist,
+  removeFromWishlist,
   selectWishlists,
+  selectCurrentWishlist,
 } from "../../store/slices/wishlistsSlice";
+import { toast } from "react-hot-toast";
 
 export default function Wishlists() {
   const dispatch = useDispatch<AppDispatch>();
   const wishlists = useSelector(selectWishlists);
+  const currentWishlist = useSelector(selectCurrentWishlist);
   const { isLoading, error } = useSelector(
     (state: RootState) => state.wishlists
   );
 
   useEffect(() => {
-    dispatch(fetchWishlists()).then((action) => {
-      console.log("Fetched wishlists:", action.payload);
+    // Fetch default wishlist to ensure we have the current items
+    dispatch(fetchDefaultWishlist()).then(() => {
+      dispatch(fetchWishlists()).then((action) => {
+        console.log("Fetched wishlists:", action.payload);
+      });
     });
   }, [dispatch]);
 
-  const handleDeleteWishlist = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this wishlist?")) {
+  const handleRemoveItem = async (itemId: string) => {
+    if (!currentWishlist) {
+      toast.error("No wishlist available");
+      return;
+    }
+
+    if (window.confirm("Remove this item from your wishlist?")) {
       try {
-        await dispatch(deleteWishlist(id)).unwrap();
+        await dispatch(
+          removeFromWishlist({
+            wishlistId: currentWishlist.id,
+            itemId,
+          })
+        ).unwrap();
+        toast.success("Item removed from wishlist");
       } catch (err) {
-        // Error is handled by the wishlists slice
+        toast.error("Failed to remove item");
       }
     }
   };
@@ -43,6 +61,12 @@ export default function Wishlists() {
     return <div className="text-center text-red-600 py-8">{error}</div>;
   }
 
+  // Check if there are any wishlist items
+  const hasItems =
+    currentWishlist &&
+    currentWishlist.items &&
+    currentWishlist.items.length > 0;
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
@@ -50,7 +74,7 @@ export default function Wishlists() {
         <p className="mt-2 text-gray-600">Items you've saved for later</p>
       </div>
 
-      {Array.isArray(wishlists) && wishlists.length === 0 ? (
+      {!hasItems ? (
         <div className="bg-white shadow rounded-lg p-8 text-center">
           <div className="mb-4 text-purple-600">
             <svg
@@ -83,53 +107,42 @@ export default function Wishlists() {
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {Array.isArray(wishlists) &&
-            wishlists.map((wishlist) => (
-              <div
-                key={wishlist.id}
-                className="bg-white shadow rounded-lg overflow-hidden transition-shadow hover:shadow-lg"
-              >
-                <div className="p-6">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="text-lg font-medium text-gray-900">
-                        {wishlist.name}
-                      </h3>
-                      <p className="mt-1 text-sm text-gray-500">
-                        {wishlist.items.length}{" "}
-                        {wishlist.items.length === 1 ? "item" : "items"}
-                      </p>
-                    </div>
-                    {wishlist.isPublic !== undefined && (
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          wishlist.isPublic
-                            ? "bg-green-100 text-green-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {wishlist.isPublic ? "Public" : "Private"}
-                      </span>
-                    )}
-                  </div>
-                  <div className="mt-4 flex justify-between items-center">
-                    <Link
-                      to={`/wishlists/${wishlist.id}`}
-                      className="text-sm font-medium text-purple-600 hover:text-purple-500"
-                    >
-                      View Details
-                    </Link>
-                    <button
-                      onClick={() => handleDeleteWishlist(wishlist.id)}
-                      className="text-sm font-medium text-red-600 hover:text-red-500"
-                    >
-                      Delete
-                    </button>
-                  </div>
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+          {currentWishlist?.items.map((item) => (
+            <div
+              key={item.id}
+              className="bg-white shadow rounded-lg overflow-hidden transition-shadow hover:shadow-lg"
+            >
+              <Link to={`/items/${item.id}`}>
+                <div className="relative pb-[100%]">
+                  <img
+                    src={item.imageUrl}
+                    alt={item.name}
+                    className="absolute inset-0 w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
+                  />
                 </div>
+                <div className="p-4">
+                  <h3 className="text-lg font-medium text-gray-900 truncate">
+                    {item.name}
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500 line-clamp-2">
+                    {item.description}
+                  </p>
+                  <p className="mt-2 text-purple-600 font-medium">
+                    ₱{item.price.toFixed(2)}
+                  </p>
+                </div>
+              </Link>
+              <div className="px-4 pb-4 pt-1 flex justify-end">
+                <button
+                  onClick={() => handleRemoveItem(item.id)}
+                  className="text-sm font-medium text-red-600 hover:text-red-500"
+                >
+                  Remove
+                </button>
               </div>
-            ))}
+            </div>
+          ))}
         </div>
       )}
     </div>

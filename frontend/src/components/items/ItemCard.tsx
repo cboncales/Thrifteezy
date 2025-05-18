@@ -1,16 +1,19 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { HeartIcon as HeartOutline } from "@heroicons/react/24/outline";
 import { HeartIcon as HeartSolid } from "@heroicons/react/24/solid";
 import { toast } from "react-hot-toast";
+import { useEffect, useState, useCallback } from "react";
 import type { Item } from "../../store/slices/itemSlice";
-import type { AppDispatch } from "../../store";
+import type { AppDispatch, RootState } from "../../store";
 import {
   addToWishlist,
   removeFromWishlist,
   selectWishlistItemIds,
   fetchDefaultWishlist,
   selectCurrentWishlist,
+  selectWishlists,
+  createWishlist,
 } from "../../store/slices/wishlistsSlice";
 
 interface ItemCardProps {
@@ -26,44 +29,120 @@ export const ItemCard = ({
   isDeleting,
   showAdminControls,
 }: ItemCardProps) => {
+  const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
+  const [processingWishlist, setProcessingWishlist] = useState(false);
+
+  // Get authentication state
+  const { user, token } = useSelector((state: RootState) => state.auth);
+  const isAuthenticated = !!user && !!token;
 
   // Get wishlist items and current wishlist from Redux store
   const wishlistItemIds = useSelector(selectWishlistItemIds);
   const currentWishlist = useSelector(selectCurrentWishlist);
+  const wishlists = useSelector(selectWishlists);
   const isInWishlist = wishlistItemIds.includes(item.id);
 
+  // Ensure we have a default wishlist only if user is authenticated
+  useEffect(() => {
+    if (isAuthenticated && !currentWishlist && !processingWishlist) {
+      dispatch(fetchDefaultWishlist());
+    }
+  }, [dispatch, currentWishlist, isAuthenticated, processingWishlist]);
+
   // Handle wishlist toggle
-  const handleToggleWishlist = async (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleToggleWishlist = useCallback(
+    async (e: React.MouseEvent) => {
+      e.preventDefault();
+      e.stopPropagation();
 
-    // If no wishlist is loaded yet, fetch the default wishlist
-    if (!currentWishlist) {
-      await dispatch(fetchDefaultWishlist());
-    }
+      // Check if user is authenticated
+      if (!isAuthenticated) {
+        toast.error("Please log in to use the wishlist feature", {
+          id: "login-required",
+        });
 
-    if (!currentWishlist) {
-      toast.error("Unable to access wishlist. Please try again.");
-      return;
-    }
-
-    const wishlistId = currentWishlist.id;
-
-    try {
-      if (isInWishlist) {
-        await dispatch(
-          removeFromWishlist({ wishlistId, itemId: item.id })
-        ).unwrap();
-        toast.success("Removed from wishlist");
-      } else {
-        await dispatch(addToWishlist({ wishlistId, itemId: item.id })).unwrap();
-        toast.success("Added to wishlist");
+        // Ask if they want to navigate to login
+        if (
+          window.confirm(
+            "You need to be logged in to use the wishlist feature. Go to login page?"
+          )
+        ) {
+          navigate("/login");
+        }
+        return;
       }
-    } catch (error: any) {
-      toast.error(error?.message || "Error updating wishlist");
-    }
-  };
+
+      if (processingWishlist) return;
+
+      setProcessingWishlist(true);
+      try {
+        let wishlistId = currentWishlist?.id;
+
+        // If no current wishlist, check if user has any wishlists
+        if (!wishlistId && Array.isArray(wishlists) && wishlists.length > 0) {
+          wishlistId = wishlists[0].id;
+        }
+
+        // If user has no wishlists, create a single default one
+        if (!wishlistId) {
+          console.log("Creating default wishlist for user", user?.id);
+          const newWishlist = await dispatch(
+            createWishlist({ name: "My Wishlist", isPublic: false })
+          ).unwrap();
+          wishlistId = newWishlist.id;
+        }
+
+        if (!wishlistId) {
+          toast.error("Unable to access wishlist. Please try again.");
+          return;
+        }
+
+        // Add or remove item from the single wishlist
+        if (isInWishlist) {
+          await dispatch(
+            removeFromWishlist({ wishlistId, itemId: item.id })
+          ).unwrap();
+          toast.success("Removed from wishlist");
+        } else {
+          await dispatch(
+            addToWishlist({ wishlistId, itemId: item.id })
+          ).unwrap();
+          toast.success("Added to wishlist");
+        }
+      } catch (error: any) {
+        console.error("Wishlist error:", error);
+
+        if (
+          error?.message?.includes("401") ||
+          error?.message?.includes("403")
+        ) {
+          toast.error("Authentication error. Please log in again.");
+
+          if (
+            window.confirm("Your session may have expired. Go to login page?")
+          ) {
+            navigate("/login");
+          }
+        } else {
+          toast.error(error?.message || "Error updating wishlist");
+        }
+      } finally {
+        setProcessingWishlist(false);
+      }
+    },
+    [
+      currentWishlist,
+      dispatch,
+      isInWishlist,
+      item.id,
+      processingWishlist,
+      isAuthenticated,
+      navigate,
+      user,
+      wishlists,
+    ]
+  );
 
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow group relative">
@@ -104,6 +183,7 @@ export const ItemCard = ({
       <button
         className="absolute top-3 left-3 p-1.5 rounded-full bg-white bg-opacity-70 hover:bg-opacity-100 transition-all duration-200"
         onClick={handleToggleWishlist}
+        disabled={processingWishlist}
         aria-label={isInWishlist ? "Remove from wishlist" : "Add to wishlist"}
       >
         {isInWishlist ? (
@@ -113,6 +193,7 @@ export const ItemCard = ({
         )}
       </button>
 
+      {/* Admin controls if needed */}
       {showAdminControls && onDelete && (
         <div className="absolute top-2 right-2 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <button

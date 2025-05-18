@@ -1,6 +1,13 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import {
+  createSlice,
+  createAsyncThunk,
+  createSelector,
+} from "@reduxjs/toolkit";
 import axios from "axios";
 import type { RootState } from "../index";
+
+// Define API URL
+const API_URL = "http://localhost:5000/api";
 
 export interface WishlistItem {
   id: string;
@@ -39,7 +46,7 @@ export const fetchWishlists = createAsyncThunk(
   "wishlists/fetchWishlists",
   async (_, { rejectWithValue }) => {
     try {
-      const response = await axios.get<Wishlist[]>("/api/wishlists");
+      const response = await axios.get<Wishlist[]>(`${API_URL}/wishlists`);
       // Ensure we return an array even if the API response structure changes
       return Array.isArray(response.data) ? response.data : [];
     } catch (error: any) {
@@ -54,7 +61,7 @@ export const fetchWishlistById = createAsyncThunk(
   "wishlists/fetchWishlistById",
   async (id: string, { rejectWithValue }) => {
     try {
-      const response = await axios.get<Wishlist>(`/api/wishlists/${id}`);
+      const response = await axios.get<Wishlist>(`${API_URL}/wishlists/${id}`);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
@@ -68,19 +75,31 @@ export const fetchDefaultWishlist = createAsyncThunk(
   "wishlists/fetchDefaultWishlist",
   async (_, { dispatch, rejectWithValue }) => {
     try {
-      const response = await axios.get<Wishlist[]>("/api/wishlists");
+      // Get all wishlists for the user
+      const response = await axios.get<Wishlist[]>(`${API_URL}/wishlists`);
 
-      // If no wishlists exist, create a default one
-      if (response.data.length === 0) {
-        const newWishlist = await dispatch(
-          createWishlist({ name: "My Wishlist", isPublic: false })
-        ).unwrap();
-        return newWishlist;
+      // Log for debugging
+      console.log(
+        "Fetched wishlists for default selection:",
+        response.data?.length || 0
+      );
+
+      // If user has any wishlist, return the first one (primary wishlist)
+      if (response.data && response.data.length > 0) {
+        console.log("Using existing wishlist:", response.data[0].id);
+        return response.data[0];
       }
 
-      // Otherwise, return the first wishlist
-      return response.data[0];
+      // If no wishlists exist, create exactly one default wishlist
+      console.log("No wishlist found, creating default wishlist");
+      const newWishlist = await dispatch(
+        createWishlist({ name: "My Wishlist", isPublic: false })
+      ).unwrap();
+
+      console.log("Created new default wishlist:", newWishlist.id);
+      return newWishlist;
     } catch (error: any) {
+      console.error("Error fetching default wishlist:", error);
       return rejectWithValue(
         error.response?.data?.message || "Failed to fetch default wishlist"
       );
@@ -92,7 +111,7 @@ export const createWishlist = createAsyncThunk(
   "wishlists/createWishlist",
   async (data: { name: string; isPublic: boolean }, { rejectWithValue }) => {
     try {
-      const response = await axios.post<Wishlist>("/api/wishlists", data);
+      const response = await axios.post<Wishlist>(`${API_URL}/wishlists`, data);
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
@@ -110,7 +129,7 @@ export const addToWishlist = createAsyncThunk(
   ) => {
     try {
       const response = await axios.post<Wishlist>(
-        `/api/wishlists/${wishlistId}/items`,
+        `${API_URL}/wishlists/${wishlistId}/items`,
         { itemId }
       );
       return response.data;
@@ -130,7 +149,7 @@ export const removeFromWishlist = createAsyncThunk(
   ) => {
     try {
       const response = await axios.delete<Wishlist>(
-        `/api/wishlists/${wishlistId}/items/${itemId}`
+        `${API_URL}/wishlists/${wishlistId}/items/${itemId}`
       );
       return response.data;
     } catch (error: any) {
@@ -145,7 +164,7 @@ export const deleteWishlist = createAsyncThunk(
   "wishlists/deleteWishlist",
   async (id: string, { rejectWithValue }) => {
     try {
-      await axios.delete(`/api/wishlists/${id}`);
+      await axios.delete(`${API_URL}/wishlists/${id}`);
       return id;
     } catch (error: any) {
       return rejectWithValue(
@@ -286,11 +305,7 @@ const wishlistsSlice = createSlice({
 
 export const { clearCurrentWishlist, clearError } = wishlistsSlice.actions;
 
-export const selectWishlists = (state: RootState) => {
-  const wishlists = state.wishlists.wishlists;
-  return Array.isArray(wishlists) ? wishlists : [];
-};
-
+export const selectWishlists = (state: RootState) => state.wishlists.wishlists;
 export const selectCurrentWishlist = (state: RootState) =>
   state.wishlists.currentWishlist;
 export const selectWishlistsLoading = (state: RootState) =>
@@ -298,18 +313,24 @@ export const selectWishlistsLoading = (state: RootState) =>
 export const selectWishlistsError = (state: RootState) => state.wishlists.error;
 
 // Helper selector to check if item is in wishlist
-export const selectIsItemInWishlist =
-  (itemId: string) => (state: RootState) => {
-    const wishlist = state.wishlists.currentWishlist;
-    if (!wishlist) return false;
+export const selectIsItemInWishlist = createSelector(
+  [
+    (state: RootState) => state.wishlists.currentWishlist,
+    (_, itemId: string) => itemId,
+  ],
+  (wishlist, itemId) => {
+    if (!wishlist || !wishlist.items) return false;
     return wishlist.items.some((item) => item.id === itemId);
-  };
+  }
+);
 
-// Selector to extract item ids from the current wishlist
-export const selectWishlistItemIds = (state: RootState) => {
-  const wishlist = state.wishlists.currentWishlist;
-  if (!wishlist) return [];
-  return (wishlist.items || []).map((item) => item.id);
-};
+// Memoized selector to extract item ids from the current wishlist
+export const selectWishlistItemIds = createSelector(
+  [(state: RootState) => state.wishlists.currentWishlist],
+  (wishlist) => {
+    if (!wishlist || !wishlist.items) return [];
+    return wishlist.items.map((item) => item.id);
+  }
+);
 
 export default wishlistsSlice.reducer;
