@@ -1,4 +1,5 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import type { PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
 import type { RootState } from "../../store";
 
@@ -62,6 +63,20 @@ export const fetchOrderById = createAsyncThunk(
   }
 );
 
+export const createOrder = createAsyncThunk(
+  "orders/createOrder",
+  async (itemId: string, { rejectWithValue }) => {
+    try {
+      const response = await axios.post<Order>("/api/orders", { itemId });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.message || "Failed to create order"
+      );
+    }
+  }
+);
+
 export const cancelOrder = createAsyncThunk(
   "orders/cancelOrder",
   async (id: string, { rejectWithValue }) => {
@@ -115,6 +130,20 @@ const ordersSlice = createSlice({
         state.isLoading = false;
         state.error = action.payload as string;
       })
+      // Create Order
+      .addCase(createOrder.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(createOrder.fulfilled, (state, action: PayloadAction<Order>) => {
+        state.isLoading = false;
+        state.currentOrder = action.payload;
+        state.orders.unshift(action.payload); // Add to beginning of orders list
+      })
+      .addCase(createOrder.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload as string;
+      })
       // Cancel Order
       .addCase(cancelOrder.pending, (state) => {
         state.isLoading = true;
@@ -139,7 +168,7 @@ const ordersSlice = createSlice({
 
 export const { clearCurrentOrder, clearError } = ordersSlice.actions;
 
-export const selectOrders = (state: RootState) => state.orders.orders;
+export const selectOrders = (state: RootState) => state.orders.orders || [];
 export const selectCurrentOrder = (state: RootState) =>
   state.orders.currentOrder;
 export const selectOrdersLoading = (state: RootState) => state.orders.isLoading;

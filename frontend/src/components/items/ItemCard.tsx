@@ -16,6 +16,7 @@ import {
   selectWishlists,
   createWishlist,
 } from "../../store/slices/wishlistsSlice";
+import { createOrder } from "../../store/slices/ordersSlice";
 
 type ItemCardItem = Item | WishlistItem;
 
@@ -37,6 +38,7 @@ export const ItemCard = ({
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
   const [processingWishlist, setProcessingWishlist] = useState(false);
+  const [processingOrder, setProcessingOrder] = useState(false);
 
   // Get authentication state
   const { user, token } = useSelector((state: RootState) => state.auth);
@@ -149,6 +151,51 @@ export const ItemCard = ({
     ]
   );
 
+  // Handle buy button click
+  const handleBuyClick = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    // Check if user is authenticated
+    if (!isAuthenticated) {
+      toast.error("Please log in to purchase items", {
+        id: "login-required",
+      });
+
+      // Ask if they want to navigate to login
+      if (
+        window.confirm(
+          "You need to be logged in to purchase items. Go to login page?"
+        )
+      ) {
+        navigate("/login");
+      }
+      return;
+    }
+
+    if (processingOrder) return;
+
+    setProcessingOrder(true);
+    try {
+      const order = await dispatch(createOrder(item.id)).unwrap();
+      toast.success("Order created successfully!");
+      navigate(`/orders/${order.id}`);
+    } catch (error: any) {
+      if (error?.message?.includes("401") || error?.message?.includes("403")) {
+        toast.error("Authentication error. Please log in again.");
+        if (
+          window.confirm("Your session may have expired. Go to login page?")
+        ) {
+          navigate("/login");
+        }
+      } else {
+        toast.error(error?.message || "Failed to create order");
+      }
+    } finally {
+      setProcessingOrder(false);
+    }
+  };
+
   // Helper function to get item properties
   const getItemProps = (item: ItemCardItem) => {
     if ("title" in item) {
@@ -230,12 +277,9 @@ export const ItemCard = ({
       {/* Buy Button */}
       <div className="px-4 pb-4 pt-2">
         <button
-          className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors duration-200 flex items-center justify-center gap-2"
-          onClick={(e) => {
-            e.preventDefault();
-            // TODO: Implement buy functionality
-            toast.success("Buy functionality coming soon!");
-          }}
+          className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors duration-200 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          onClick={handleBuyClick}
+          disabled={processingOrder}
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -251,7 +295,7 @@ export const ItemCard = ({
               d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
             />
           </svg>
-          Buy Now
+          {processingOrder ? "Processing..." : "Buy Now"}
         </button>
       </div>
 

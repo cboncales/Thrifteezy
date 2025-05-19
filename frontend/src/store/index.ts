@@ -3,15 +3,15 @@ import type { TypedUseSelectorHook } from "react-redux";
 import { useDispatch, useSelector } from "react-redux";
 import authReducer from "./slices/authSlice";
 import itemReducer from "./slices/itemSlice";
-import ordersReducer from "./slices/ordersSlice";
 import wishlistsReducer from "./slices/wishlistsSlice";
+import ordersReducer from "./slices/ordersSlice";
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     items: itemReducer,
-    orders: ordersReducer,
     wishlists: wishlistsReducer,
+    orders: ordersReducer,
   },
 });
 
