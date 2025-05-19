@@ -5,6 +5,7 @@ import { HeartIcon as HeartSolid } from "@heroicons/react/24/solid";
 import { toast } from "react-hot-toast";
 import { useEffect, useState, useCallback } from "react";
 import type { Item } from "../../store/slices/itemSlice";
+import type { WishlistItem } from "../../store/slices/wishlistsSlice";
 import type { AppDispatch, RootState } from "../../store";
 import {
   addToWishlist,
@@ -16,11 +17,14 @@ import {
   createWishlist,
 } from "../../store/slices/wishlistsSlice";
 
+type ItemCardItem = Item | WishlistItem;
+
 interface ItemCardProps {
-  item: Item;
+  item: ItemCardItem;
   onDelete?: () => void;
   isDeleting?: boolean;
   showAdminControls?: boolean;
+  isWishlistView?: boolean;
 }
 
 export const ItemCard = ({
@@ -28,6 +32,7 @@ export const ItemCard = ({
   onDelete,
   isDeleting,
   showAdminControls,
+  isWishlistView = false,
 }: ItemCardProps) => {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
@@ -144,37 +149,66 @@ export const ItemCard = ({
     ]
   );
 
+  // Helper function to get item properties
+  const getItemProps = (item: ItemCardItem) => {
+    if ("title" in item) {
+      // It's an Item
+      return {
+        title: item.title,
+        description: item.description,
+        price: item.price,
+        imageUrl: item.photoUrl,
+        condition: item.condition,
+        size: item.size,
+        category: item.category,
+      };
+    } else {
+      // It's a WishlistItem
+      return {
+        title: item.name,
+        description: item.description,
+        price: item.price,
+        imageUrl: item.imageUrl,
+        condition: "GOOD", // Default condition for wishlist items
+        size: "One Size", // Default size for wishlist items
+        category: "Other", // Default category for wishlist items
+      };
+    }
+  };
+
+  const itemProps = getItemProps(item);
+
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden hover:shadow-lg transition-shadow group relative">
-      <Link to={`/items/${item.id}`}>
+      <Link to={`/items/${item.id}`} className="block">
         <div className="relative pb-[100%]">
           <img
-            src={item.photoUrl}
-            alt={item.title}
+            src={itemProps.imageUrl}
+            alt={itemProps.title}
             className="absolute inset-0 w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-300"
           />
           <div className="absolute top-2 right-2">
             <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-              {item.condition}
+              {itemProps.condition}
             </span>
           </div>
         </div>
         <div className="p-4">
           <h3 className="text-lg font-semibold text-gray-900 mb-2 truncate group-hover:text-purple-600 transition-colors">
-            {item.title}
+            {itemProps.title}
           </h3>
           <div className="flex justify-between items-center">
             <p className="text-purple-600 font-bold">
-              ₱{item.price.toFixed(2)}
+              ₱{itemProps.price.toFixed(2)}
             </p>
             <div className="flex space-x-2 text-sm text-gray-500">
-              <span>{item.size}</span>
+              <span>{itemProps.size}</span>
               <span>·</span>
-              <span>{item.category}</span>
+              <span>{itemProps.category}</span>
             </div>
           </div>
           <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-            {item.description}
+            {itemProps.description}
           </p>
         </div>
       </Link>
@@ -193,13 +227,41 @@ export const ItemCard = ({
         )}
       </button>
 
-      {/* Admin controls if needed */}
-      {showAdminControls && onDelete && (
+      {/* Buy Button */}
+      <div className="px-4 pb-4 pt-2">
+        <button
+          className="w-full bg-purple-600 text-white py-2 px-4 rounded-md hover:bg-purple-700 transition-colors duration-200 flex items-center justify-center gap-2"
+          onClick={(e) => {
+            e.preventDefault();
+            // TODO: Implement buy functionality
+            toast.success("Buy functionality coming soon!");
+          }}
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"
+            />
+          </svg>
+          Buy Now
+        </button>
+      </div>
+
+      {/* Admin controls - only show if not in wishlist view */}
+      {showAdminControls && !isWishlistView && (
         <div className="absolute top-2 right-2 flex space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
           <button
             onClick={(e) => {
               e.preventDefault();
-              onDelete();
+              onDelete?.();
             }}
             disabled={isDeleting}
             className="p-1 bg-white rounded-full shadow hover:bg-gray-50 disabled:opacity-50"

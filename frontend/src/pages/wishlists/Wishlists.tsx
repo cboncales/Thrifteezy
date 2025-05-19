@@ -10,6 +10,7 @@ import {
   selectCurrentWishlist,
 } from "../../store/slices/wishlistsSlice";
 import { toast } from "react-hot-toast";
+import { ItemCard } from "../../components/items/ItemCard";
 
 export default function Wishlists() {
   const dispatch = useDispatch<AppDispatch>();
@@ -109,39 +110,13 @@ export default function Wishlists() {
       ) : (
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
           {currentWishlist?.items.map((item) => (
-            <div
+            <ItemCard
               key={item.id}
-              className="bg-white shadow rounded-lg overflow-hidden transition-shadow hover:shadow-lg"
-            >
-              <Link to={`/items/${item.id}`}>
-                <div className="relative pb-[100%]">
-                  <img
-                    src={item.imageUrl}
-                    alt={item.name}
-                    className="absolute inset-0 w-full h-full object-cover transform hover:scale-105 transition-transform duration-300"
-                  />
-                </div>
-                <div className="p-4">
-                  <h3 className="text-lg font-medium text-gray-900 truncate">
-                    {item.name}
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500 line-clamp-2">
-                    {item.description}
-                  </p>
-                  <p className="mt-2 text-purple-600 font-medium">
-                    ₱{item.price.toFixed(2)}
-                  </p>
-                </div>
-              </Link>
-              <div className="px-4 pb-4 pt-1 flex justify-end">
-                <button
-                  onClick={() => handleRemoveItem(item.id)}
-                  className="text-sm font-medium text-red-600 hover:text-red-500"
-                >
-                  Remove
-                </button>
-              </div>
-            </div>
+              item={item}
+              onDelete={() => handleRemoveItem(item.id)}
+              showAdminControls={true}
+              isWishlistView={true}
+            />
           ))}
         </div>
       )}
